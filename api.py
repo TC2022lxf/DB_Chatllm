@@ -26,11 +26,11 @@
 #                  callback_manager=CallbackManager([StreamingStdOutCallbackHandler()]))
 #
 # llm.invoke("你好")
-####
-from utils.db import chroma_MHTS
-from utils.llm import *
-from utils.load_data import load_md_MHTS
-from utils.retriever import *
-llm("什么是肤质")
-
+# ####
+# from utils.db import chroma_MHTS
+# from utils.llm import *
+# from utils.load_data import load_md_MHTS
+# from utils.retriever import *
+# llm("什么是肤质")
+#
 

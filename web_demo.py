@@ -2,11 +2,15 @@
 # st表示streamlit
 import streamlit as st
 import torch
+from langchain_community.llms.ollama import Ollama
 from langchain_core.messages import AIMessage, HumanMessage
 from utils.retriever import retrievers
 from utils.load_data import load_data
 from utils.llm import *
 
+llm = Ollama(base_url="http://localhost:11434",
+                 model="qwen",
+                 callback_manager=CallbackManager([StreamingStdOutCallbackHandler()]))
 
 st.set_page_config(page_title='Qwen-Chatbot')  # 页面标题
 st.header('Qwen-Powered Chatbot :robot_face:')  # 标题头
@@ -48,7 +52,8 @@ if user_input := st.chat_input("Enter your question here"):  # chat_input创建�
         #similar_docs = retrievers(user_input)  # 根据回答检索出的知识文本 所以类似的文本都结合起来
         # context = "\n".join([document.page_content for document in similar_docs])
         #context = str(similar_docs[0].page_content)
-        context = llm_no_prompt(user_input)
+        #context = llm_no_prompt(user_input)
+        context = llm.invoke(user_input)
         # query_llm = LLMChain(llm=llm, prompt=prompt)  # , memory=memory)
         # response = query_llm.run({"context": context, "question": user_input})
         # response = response.replace("$", "\$")  # 字符串中所有的 $ 符号，并将其替换为 \$

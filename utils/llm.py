@@ -8,9 +8,16 @@ from utils.retriever import retrievers
 from config import LLM_MODELS,MODEL_PATH
 from utils.db import *
 def load_llm():
-    callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
-    return LlamaCpp(model_path=MODEL_PATH['llm_model'][LLM_MODELS], callback_manager=callback_manager,
-                    verbose=True, n_ctx=2048,temperature=0)
+    # callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
+    # return LlamaCpp(model_path=MODEL_PATH['llm_model'][LLM_MODELS], callback_manager=callback_manager,
+    #                 verbose=True, n_ctx=2048,temperature=0)
+    from langchain_community.llms.ollama import Ollama
+    from langchain_core.callbacks import CallbackManager, StreamingStdOutCallbackHandler
+
+    llm = Ollama(base_url="http://localhost:11434",
+                     model="qwen",
+                     callback_manager=CallbackManager([StreamingStdOutCallbackHandler()]))
+    return llm
 
 def llm_no_prompt(question):
     '''
