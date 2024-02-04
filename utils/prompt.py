@@ -8,15 +8,12 @@ def create_prompt_template():
             知识文本为:{context},
             问题为:{question}.
             """
-    prompt_template1 = """Question: {question}
-    
-    Answer: """
-    prompt = PromptTemplate(template=prompt_template, input_variables=["question"])
+    prompt = PromptTemplate(template=prompt_template, input_variables=["context","question"])
     return prompt
 
 def create_prompt_template_no_context():
-    prompt_template1 = """Question: {question}
+    prompt_template1 = """问题: {question}
 
-        Answer: """
+        答案: """
     prompt = PromptTemplate(template=prompt_template1, input_variables=["question"])
     return prompt
