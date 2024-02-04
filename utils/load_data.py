@@ -31,6 +31,10 @@ def load_docx() -> str:
 
 
 def load_md_MHTS():
+    '''
+    根据md文件的标题分割文档。
+    :return:
+    '''
     with open(doc_path, 'r', encoding='utf-8') as files:
         markdown_text = files.read()
     headers_to_split_on = [
@@ -56,7 +60,6 @@ def load_md_MHTS():
         _metadatas = [header_group.metadata for _ in _splits]  # 文本对应的标题
         all_splits += _splits
         all_metadatas += _metadatas
-    print(all_metadatas[6])
     return all_splits,all_metadatas
 
 
