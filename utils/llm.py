@@ -1,4 +1,7 @@
-from langchain.chains import LLMChain, RetrievalQA
+from langchain.chains import LLMChain, RetrievalQA, ConversationalRetrievalChain
+from langchain.chains.conversational_retrieval.prompts import CONDENSE_QUESTION_PROMPT, QA_PROMPT
+from langchain.chains.qa_with_sources import load_qa_with_sources_chain
+from langchain.chains.question_answering import load_qa_chain
 from langchain.retrievers import SelfQueryRetriever, ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import LLMChainExtractor
 from langchain_community.llms.llamacpp import LlamaCpp
@@ -16,7 +19,8 @@ def load_llm():
 
     llm = Ollama(base_url="http://localhost:11434",
                      model="qwen",
-                     callback_manager=CallbackManager([StreamingStdOutCallbackHandler()]))
+                     callback_manager=CallbackManager([StreamingStdOutCallbackHandler()]),
+                 )
     return llm
 
 def llm_no_prompt(question):
@@ -65,6 +69,20 @@ def llm_MHTS_SQ(question):
     # qa_chain = RetrievalQA.from_chain_type(llm, retriever=sq_retriever)  #根据检索内容，结合llm回答
     # qa_chain.run(question)
 
+def llm_resource(question):
+    '''
+    返回source来源，目前不太需要，可搁置
+    :param question:
+    :return:
+    '''
+    docsearch = chroma_source()
+    docs = docsearch.similarity_search(question)
+    QUESTION_PROMPT, COMBINE_PROMPT = prompt5()
+    chain = load_qa_with_sources_chain(load_llm(), chain_type="map_reduce", return_intermediate_steps=True,
+                                       question_prompt=QUESTION_PROMPT, combine_prompt=COMBINE_PROMPT)
+    ## 加载的元数据要有source
+    print(question)
+    chain({"input_documents": docs, "question": question})
 def compression_llm(question):
     '''
     将检索出来的结果用llm压缩，失败
@@ -81,64 +99,125 @@ def compression_llm(question):
     compressed_docs = compression_retriever.get_relevant_documents(question)
     print(f"\n{'-' * 100}\n".join([f"Document {i + 1}:\n\n" + d.page_content for i, d in enumerate(compressed_docs)]))
 
-def prompt_template_CRQA(self):
+class llm_QA_chains():
     '''
     根据检索出的结果，
-    构建llm-prompt提示词模板,创建新的检索方式实现对话式QA
+    https://www.langchain.com.cn/modules/chains/index_examples/question_answering
+    llm的问答，自定义提示，stuff链、map_reduce链、Refine链、map-rerank链、
+    建议stuff和map-rerank
+    无历史记录
     '''
-    retrievers()
-    create_prompt_template()
+    def __init__(self,question):
+        self.docsearch = chroma_source()
+        self.llm = load_llm()
+        self.docs = self.docsearch.as_retriever().get_relevant_documents(question)
+        self.question = question
+        print(self.docs)
 
-    '''
-    对话式问答QA，基于问答QA，后面再写
-    '''
+    def stuff(self):
+        '''
+        可行，效果还不错
+        :return:
+        '''
+        chain = load_qa_chain(self.llm, chain_type="stuff", prompt=prompt1())
+        qa = ConversationalRetrievalChain(
+            retriever=self.docsearch.as_retriever(), combine_docs_chain=chain)
+        qa({"input_documents": self.docs, "question": self.question,"history": " "}, return_only_outputs=True)
+
+    def map_reduce(self):
+        '''
+        尝试用两个prompt，但是不知道如何设置，把握不好，回答太长，效果不好,后面可能再改改prompt
+        两个prompt是question_prompt=QUESTION_PROMPT, combine_prompt=COMBINE_PROMPT用prompt2()返回
+        :return:
+        '''
+        QUESTION_PROMPT,COMBINE_PROMPT=prompt2()
+        chain = load_qa_chain(self.llm, chain_type="map_reduce", return_map_steps=True,question_prompt=QUESTION_PROMPT, combine_prompt=COMBINE_PROMPT)
+        chain({"input_documents": self.docs, "question": self.question}, return_only_outputs=True)
+        ##chain = load_qa_chain(OpenAI(temperature=0), chain_type="map_reduce", return_map_steps=True)  #检查中间过程
+        ##chain({"input_documents": docs, "question": query}, return_only_outputs=True)
+
+    def refine(self):
+        '''
+        同样的问题，答案太长太详细了。
+        :return:
+        '''
+        refine_prompt,initial_qa_prompt = prompt3()
+        chain = load_qa_chain(self.llm, chain_type="refine", return_refine_steps=True,
+                              question_prompt=initial_qa_prompt, refine_prompt=refine_prompt)
+        chain({"input_documents": self.docs, "question": self.question}, return_only_outputs=True)
+
+    def map_rerank(self):
+        '''
+        这个根据prompt，我们让llm回答，并给回答打上分数，越高越相似，还凑合
+        :return:
+        '''
+        chain = load_qa_chain(self.llm, chain_type="map_rerank", return_intermediate_steps=True,
+                              prompt=prompt4())
+        query = "What did the president say about Justice Breyer"
+        chain({"input_documents": self.docs, "question": self.question}, return_only_outputs=True)
+
+def chat_llm(question):
+    from langchain.memory import ConversationBufferMemory
+    vectorstore = chroma_source()
     # memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
-    # qa = ConversationalRetrievalChain.from_llm(llm, vectordb.as_retriever(), memory=memory)
-    '''
-    问答QA
-    '''
+    # qa = ConversationalRetrievalChain.from_llm(load_llm(), vectorstore.as_retriever(), memory=memory)
+    # result = qa({"question": question})  # 能回答，较短
+    # result = qa({"question": "你知道我的朋友艾米是个什么博主吗"})  # 回答不知道，我认为没道理不知道
+    chat_history = []
+    qa = ConversationalRetrievalChain.from_llm(load_llm(), vectorstore.as_retriever(), return_source_documents=True)
 
+    result = qa({"question": question, "chat_history": chat_history})
+    print("answer: ",result["answer"])
+    print("source doc: ",result["source_documents"])
+    chat_history = [(question, result["answer"])]
+    result = qa({"question": "那我应该如何判断我的肤质好不好呢", "chat_history": chat_history})
+    print("answer: ", result["answer"])
+    chat_history.append((question, result["answer"]))
+    print("source doc: ", result["source_documents"])
+    print(chat_history)
 
-def prompt_template_QA(self):
-    self.chroma_data()
-    self.load_llm()
-    query = self.query
-    '''
-    第一种代码：
-    '''
-    prompt_template = """我将给你一个知识文本context,以及一个与你的工作有关的问题question.
-    如果你在context中无法搜寻到问题的答案,即使你本身知道答案但我也请你不要回答,只需要告诉我你不知道答案就行.
-    知识文本为:{context},
-    问题为:{question}
-    """
-    # PROMPT = PromptTemplate(
-    #     template=prompt_template, input_variables=["context", "question"]
-    # )
-    # # 自定义 chain prompt
-    # chain_type_kwargs = {"prompt": self.prompt}
-    # qa = RetrievalQA.from_chain_type(llm=self.llm, chain_type="stuff", retriever=self.vectordb.as_retriever(search_type="mmr"),
-    #                                  chain_type_kwargs=chain_type_kwargs)
-    # print(qa.run(query))
-    #
-    # '''
-    # 第二种代码,传上了input_documents为检索知识库出的内容
-    # '''
-    # self.retrievers()
-    # chain = load_qa_chain(self.llm, chain_type="stuff", prompt=PROMPT)
-    # answer = chain({"input_documents": self.doc, "question": query}, return_only_outputs=True)
-    # print(answer)
+def get_chat_history(inputs) -> str:
+    res = []
+    for human, ai in inputs:
+        res.append(f"Human:{human}\nAI:{ai}")
+    return "\n".join(res)
 
-    '''
-    第三种代码,契合llamacpp的
-    '''
-    doc = retrievers(query)
-    create_prompt_template()
-    llm_chain = LLMChain(prompt=self.prompt, llm=self.llm)
-    context = repr(doc[0].page_content)
-    answer = llm_chain.run(context=context, question=query)
-    print(answer)
+def stream_chat_llm(question):
+    _template = """Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question, in its original language.
 
+    Chat History:
+    {chat_history}
+    Follow Up Input: {question}
+    Standalone question:"""
+    CONDENSE_QUESTION_PROMPT = PromptTemplate(
+        template=_template, input_variables=["chat_history", "question"]
+    )
 
+    prompt_template = """Use the following pieces of context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
+
+    {context}
+
+    Question: {question}
+    Helpful Answer:"""
+    QA_PROMPT = PromptTemplate(
+        template=prompt_template, input_variables=["context", "question"]
+    )
+
+    llm = load_llm()
+    docsearch = chroma_source()
+    #docs= docsearch.similarity_search(question)
+    question_generator = LLMChain(llm=llm, prompt=CONDENSE_QUESTION_PROMPT)
+    chain = load_qa_chain(llm, chain_type="stuff", prompt=QA_PROMPT)
+    qa = ConversationalRetrievalChain(
+        retriever=docsearch.as_retriever(), combine_docs_chain=chain, question_generator=question_generator,return_source_documents=True,get_chat_history=get_chat_history)
+    chat_history = []
+
+    result = qa({"question": question, "chat_history": chat_history}, return_only_outputs=True)
+    chat_history.append((question,"艾米是个美妆博主"))
+    query = "你知道艾米是做什么工作的吗？"
+    result2 = qa({"question": query, "chat_history": chat_history})
+    chat_history.append((query,result2["answer"]))
+    print(chat_history)
 
 if __name__ == '__main__':
     print(MODEL_PATH['llm_model'][LLM_MODELS])

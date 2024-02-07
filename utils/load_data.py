@@ -1,11 +1,12 @@
+import json
 import os
+import re
 
 from langchain.text_splitter import MarkdownTextSplitter, MarkdownHeaderTextSplitter
 from langchain_community.document_loaders import UnstructuredMarkdownLoader
 from config import DEFAULT_DATA
 
-doc_path = os.path.join(DEFAULT_DATA, 'beautiful bible.md')
-tpye = "docx"
+doc_path = os.path.join(DEFAULT_DATA, 'gromacs.txt')
 
 
 def load_data():
@@ -37,6 +38,7 @@ def load_md_MHTS():
     '''
     with open(doc_path, 'r', encoding='utf-8') as files:
         markdown_text = files.read()
+
     headers_to_split_on = [
         ("#", "Header 1"),
         ("##", "Header 2"),
@@ -62,6 +64,27 @@ def load_md_MHTS():
         all_metadatas += _metadatas
     return all_splits,all_metadatas
 
+def load_md_MHTS_source():
+    '''
+    在上面函数的all_splits,all_metadatas基础上的元数据加上source来源
+    :return:
+    '''
+    all_metadata = []
+    all_splits, all_metadatas = load_md_MHTS()
+    for i, metadata in enumerate(all_metadatas):  # 加source键
+        new_metadata = metadata.copy()
+        new_metadata["source"] = str("gromacs")+' '+str(i)
+        all_metadata.append(new_metadata)
+    return all_splits,all_metadata
 
+def to_json():
+    all_splits, all_metadata = load_md_MHTS_source()
+    combined_list = [{'page_content':content,'metadata':metadata} for content,metadata in zip(all_splits,all_metadata)]
+    for i,m in enumerate(combined_list):
+        print(i,m)
+    with open('data/combined_list.json', 'w',encoding='utf-8') as json_file:
+        json.dump(combined_list, json_file, ensure_ascii=False, indent=2)
 if __name__ == '__main__':
-    doc_path = os.path.join(DEFAULT_DATA, 'beautiful bible.md')
+    doc_path = os.path.join(DEFAULT_DATA, 'converted.md')
+    all_splits, all_metadata = load_md_MHTS_source()
+

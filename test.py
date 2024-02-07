@@ -1,33 +1,38 @@
 from langchain.chains import LLMChain
-from langchain.llms import OpenAI
+from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain.retrievers.self_query.base import SelfQueryRetriever
 from langchain.chains.query_constructor.base import AttributeInfo
+from langchain.text_splitter import CharacterTextSplitter
+from langchain_community.llms.ollama import Ollama
+
 from utils.db import *
-from utils.load_data import load_md_MHTS
-from utils.llm import load_llm
+from utils.load_data import *
+from utils.llm import *
 from utils.prompt import *
+
 
 def data_splitter_test():
     '''
     根据标题分割内容测试，目前稳定
     :return:
     '''
-    all_splits, all_metadatas = load_md_MHTS()
-    for split, metadata in zip(all_splits, all_metadatas):
+    all_splits, all_metadata = load_md_MHTS_source()
+    for split, metadata in zip(all_splits, all_metadata):
         print(f"{metadata}\n{split}\n\n")
 
 
-def search_question():
+def search_question(question):
     '''
     根据问题从数据库检索数据的测试，目前稳定
     :return:
     '''
     from utils.llm import load_llm
     vectordb, document_content_description, metadata_field_info = chroma_MHTS()
-    question = "如何判断我的肤质好不好"
     docs = vectordb.similarity_search(question)
     print(question)
     print(docs)
+    return docs
+
 
 def llm_context_test(question):
     '''
@@ -41,6 +46,7 @@ def llm_context_test(question):
     llm_chain = LLMChain(prompt=prompt, llm=llm)
     llm_chain.run(context=context, question=question)
 
+
 def llm_no_context(question):
     '''
     检测语言模型在无context时的回答,此回答根据llm自身功能，回答的十分详细，说明llm自身就明白这个问题如何回答。
@@ -50,10 +56,23 @@ def llm_no_context(question):
     from utils.llm import load_llm
     llm = load_llm()
     prompt = create_prompt_template_no_context()
-    llm_chain = LLMChain(prompt=prompt,llm=llm)
+    llm_chain = LLMChain(prompt=prompt, llm=llm)
     llm_chain.run(question=question)
 
+
+
 if __name__ == '__main__':
+    # data_splitter_test()
+    question = "我有个朋友，叫做艾米，是个美妆博主，她想知道如何让她的肤质变好"
+    # llm_no_context(question)
+    # source(question)
+    #llm_QA_chains(question).stuff()
+    #chat_llm(question)
     #data_splitter_test()
-    question = "什么是肤质，肤质可以分成几类"
-    llm_no_context(question)
+    #stream_chat_llm(question)
+    #chroma_source()
+    llm = Ollama(base_url="http://localhost:11434",
+                 model="qwen:14b",
+                 callback_manager=CallbackManager([StreamingStdOutCallbackHandler()]),
+                 )
+    llm.invoke("你好")
