@@ -70,9 +70,11 @@ if __name__ == '__main__':
     #chat_llm(question)
     #data_splitter_test()
     #stream_chat_llm(question)
-    #chroma_source()
+    docsearch=chroma_source()
     llm = Ollama(base_url="http://localhost:11434",
                  model="qwen:14b",
                  callback_manager=CallbackManager([StreamingStdOutCallbackHandler()]),
                  )
     llm.invoke("你好")
+    docs = docsearch.as_retriever().get_relevant_documents("你好")
+    print(docs)
