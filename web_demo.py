@@ -2,6 +2,7 @@
 # st表示streamlit
 import pandas as pd
 import streamlit as st
+import os
 import torch
 from langchain_community.llms.ollama import Ollama
 from langchain_core.messages import AIMessage, HumanMessage
@@ -21,24 +22,29 @@ else:
 
 # 设置top_p
 if "top_p" not in st.session_state:
-    st.session_state["top_p"] = 0.8
+    st.session_state["top_p"] = 0.9
     st.sidebar.slider("top_p", 0.0, 1.0, st.session_state["top_p"], step=0.01)
 else:
     st.session_state["top_p"] = st.sidebar.slider("top_p", 0.0, 1.0, st.session_state["top_p"], step=0.01)
 
 # 设置temperature
 if "temperature" not in st.session_state:
-    st.session_state["temperature"] = 0.6
+    st.session_state["temperature"] = 0.8
     st.sidebar.slider("temperature", 0.0, 1.0, st.session_state["temperature"], step=0.01)
 else:
     st.session_state["temperature"] = st.sidebar.slider("temperature", 0.0, 1.0, st.session_state["temperature"],
                                                         step=0.01)
+# 显示现有知识库
+base_name = os.listdir("knowledge_base")
+d_base = []
+for name in base_name:
+    d_base.append(name)
 
 data_base = pd.DataFrame({
-    '知识库': [1, 2, 3, 4],
+    '知识库': d_base,
 })
 llm_option = pd.DataFrame({
-    '语言模型': ["qwen", "qwen-7B"]
+    '语言模型': ["qwen", "qwen:14b","qwen:72b"]
 })
 
 # 选择知识库
@@ -71,12 +77,9 @@ from langchain_core.prompts import PromptTemplate
 
 if "CONDENSE_QUESTION_PROMPT" not in st.session_state:
 
-    st.session_state.CONDENSE_QUESTION_PROMPT = """Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question, in its original language.
-
-    Chat History:
-    {chat_history}
-    Follow Up Input: {question}
-    Standalone question:"""
+    st.session_state.CONDENSE_QUESTION_PROMPT = """将输入的问题整理一下，去除多余的废话，使其更加整洁干净
+    输入问题: {question}
+    干净的问题:"""
     st.session_state.CONDENSE_QUESTION_PROMPT = st.text_area(
         "prompt_template(history,question)",
         st.session_state.CONDENSE_QUESTION_PROMPT,
@@ -94,12 +97,14 @@ else:
 # 设置提示词二，有上下文和问题
 if "QA_PROMPT" not in st.session_state:
 
-    st.session_state.QA_PROMPT = """Use the following pieces of context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
+    st.session_state.QA_PROMPT = """使用以下上下文和聊天历史记录来回答最后的问题。如果你不知道答案，就说你不知道，不要试图编造答案.
 
-        {context}
-
-        Question: {question}
-        Helpful Answer:"""
+    上下文: {context}
+    
+    聊天历史记录: {chat_history}
+    
+    问题: {question}
+    有帮助的答案:"""
     st.session_state.QA_PROMPT = st.text_area(
         "prompt2_template(context,question)",
         st.session_state.QA_PROMPT,

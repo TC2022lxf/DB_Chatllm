@@ -122,7 +122,7 @@ class llm_QA_chains():
         chain = load_qa_chain(self.llm, chain_type="stuff", prompt=prompt1())
         qa = ConversationalRetrievalChain(
             retriever=self.docsearch.as_retriever(), combine_docs_chain=chain)
-        qa({"input_documents": self.docs, "question": self.question,"history": " "}, return_only_outputs=True)
+        qa({"input_documents": self.docs, "question": self.question}, return_only_outputs=True)
 
     def map_reduce(self):
         '''
@@ -183,37 +183,36 @@ def get_chat_history(inputs) -> str:
     return "\n".join(res)
 
 def stream_chat_llm(question):
-    _template = """Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question, in its original language.
-
-    Chat History:
-    {chat_history}
-    Follow Up Input: {question}
-    Standalone question:"""
+    _template = """将输入的问题整理一下，去除多余的废话，使其更加整洁干净
+    输入问题: {question}
+    干净的问题:"""
     CONDENSE_QUESTION_PROMPT = PromptTemplate(
-        template=_template, input_variables=["chat_history", "question"]
+        template=_template, input_variables=["question"]
     )
 
-    prompt_template = """Use the following pieces of context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
+    prompt_template = """使用以下上下文和聊天历史记录来回答最后的问题。如果你不知道答案，就说你不知道，不要试图编造答案.
 
-    {context}
-
-    Question: {question}
-    Helpful Answer:"""
+    上下文: {context}
+    
+    聊天历史记录: {chat_history}
+    
+    问题: {question}
+    有帮助的答案:"""
     QA_PROMPT = PromptTemplate(
-        template=prompt_template, input_variables=["context", "question"]
+        template=prompt_template, input_variables=["context","chat_history", "question"]
     )
 
     llm = load_llm()
     docsearch = chroma_source()
     #docs= docsearch.similarity_search(question)
-    question_generator = LLMChain(llm=llm, prompt=CONDENSE_QUESTION_PROMPT)
+    question_generator = LLMChain(llm=llm,prompt=CONDENSE_QUESTION_PROMPT)
     chain = load_qa_chain(llm, chain_type="stuff", prompt=QA_PROMPT)
     qa = ConversationalRetrievalChain(
-        retriever=docsearch.as_retriever(), combine_docs_chain=chain, question_generator=question_generator,return_source_documents=True,get_chat_history=get_chat_history)
+        retriever=docsearch.as_retriever(), combine_docs_chain=chain, question_generator=question_generator, return_source_documents=True)
     chat_history = []
-
+    qa.stream({"question": question, "chat_history": chat_history}, return_only_outputs=True)
     result = qa({"question": question, "chat_history": chat_history}, return_only_outputs=True)
-    chat_history.append((question,"艾米是个美妆博主"))
+    chat_history.append((question,"艾米是个美妆博主",result["answer"]))
     query = "你知道艾米是做什么工作的吗？"
     result2 = qa({"question": query, "chat_history": chat_history})
     chat_history.append((query,result2["answer"]))
