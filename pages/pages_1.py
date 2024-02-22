@@ -125,7 +125,17 @@ if user_input := st.chat_input("Enter your question here"):  # chat_input创建�
         st.write_stream(chainStreamHandler.generate_tokens())
         print(chainStreamHandler.str)
         st.markdown("## 答案来源：")
-        st.markdown(docs)
+        #st.markdown(docs)
+        for i,item in enumerate(docs):
+            page_content_lines = item.page_content.split('\n')
+            formatted_content = "\n\n".join(["&emsp;&emsp;" + line for line in page_content_lines])
+            st.markdown("#### metadata header:")
+            st.markdown(item.metadata["Header 4"])
+            st.markdown("#### page_content:")
+            st.markdown(formatted_content)
+            print(formatted_content)
+
+
     st.session_state.history.append(AIMessage(content=chainStreamHandler.str))
     st.session_state['chat_history'].append((user_input,chainStreamHandler.str))
     st.session_state.messages.append(HumanMessage(content=user_input))

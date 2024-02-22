@@ -69,4 +69,6 @@ if __name__ == '__main__':
     #llm_QA_chains(question).stuff()
     #chat_llm(question)
     #data_splitter_test()
-    stream_chat_llm(question)
+    #stream_chat_llm(question)
+    retrievers(question)
+    #chroma_source()
