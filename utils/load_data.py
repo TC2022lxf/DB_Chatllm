@@ -6,7 +6,6 @@ from langchain.text_splitter import MarkdownTextSplitter, MarkdownHeaderTextSpli
 from langchain_community.document_loaders import UnstructuredMarkdownLoader
 from config import DEFAULT_DATA
 
-doc_path = os.path.join(DEFAULT_DATA, 'gromacs.txt')
 
 
 def load_data():
@@ -31,7 +30,7 @@ def load_docx() -> str:
     return str(data[0].page_content)
 
 
-def load_md_MHTS():
+def load_md_MHTS(doc_path):
     '''
     根据md文件的标题分割文档。
     :return:
@@ -59,32 +58,47 @@ def load_md_MHTS():
     all_metadatas = []
     for header_group in md_header_splits:
         _splits = text_splitter.split_text(header_group.page_content)
-        _metadatas = [header_group.metadata for _ in _splits]  # 文本对应的标题
+        _metadatas = [header_group.metadata for _ in _splits]
         all_splits += _splits
         all_metadatas += _metadatas
     return all_splits,all_metadatas
 
-def load_md_MHTS_source():
+def load_md_MHTS_source(doc_path,name):
     '''
     在上面函数的all_splits,all_metadatas基础上的元数据加上source来源
     :return:
     '''
     all_metadata = []
-    all_splits, all_metadatas = load_md_MHTS()
+    path=doc_path+"/"+name
+    all_splits, all_metadatas = load_md_MHTS(path)
     for i, metadata in enumerate(all_metadatas):  # 加source键
         new_metadata = metadata.copy()
-        new_metadata["source"] = str("gromacs")+' '+str(i)
+        new_metadata["source"] = str(name.split(".")[0])
         all_metadata.append(new_metadata)
+    to_json(doc_path,name.split(".")[0],all_splits,all_metadata)
     return all_splits,all_metadata
 
-def to_json():
-    all_splits, all_metadata = load_md_MHTS_source()
+def to_json(path,name,all_splits,all_metadata):
+    json_path = path+"/knowledge.json"
+    print(json_path)
     combined_list = [{'page_content':content,'metadata':metadata} for content,metadata in zip(all_splits,all_metadata)]
     for i,m in enumerate(combined_list):
         print(i,m)
-    with open('data/combined_list.json', 'w',encoding='utf-8') as json_file:
-        json.dump(combined_list, json_file, ensure_ascii=False, indent=2)
+
+    if not os.path.exists(json_path):
+        with open(json_path, 'w',encoding='utf-8') as json_file:
+            json.dump(combined_list, json_file, ensure_ascii=False, indent=2)
+    else:
+        # 读取现有内容
+        with open(json_path, 'r',encoding='utf-8') as json_file:
+            existing_data = json.load(json_file)
+        # 将新数据追加到现有内容中
+        existing_data.append(combined_list)
+        # 写入到文件中
+        with open(json_path, 'w',encoding='utf-8') as json_file:
+            json.dump(existing_data, json_file, ensure_ascii=False, indent=2)
+
 if __name__ == '__main__':
-    doc_path = os.path.join(DEFAULT_DATA, 'converted.md')
-    all_splits, all_metadata = load_md_MHTS_source()
+    doc_path = os.path.join(DEFAULT_DATA, 'Skincare.md')
+
 

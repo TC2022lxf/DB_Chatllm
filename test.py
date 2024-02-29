@@ -3,7 +3,7 @@ from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain.retrievers.self_query.base import SelfQueryRetriever
 from langchain.chains.query_constructor.base import AttributeInfo
 from langchain.text_splitter import CharacterTextSplitter
-from langchain_community.llms.ollama import Ollama
+#from langchain_community.llms.ollama import Ollama
 
 from utils.db import *
 from utils.load_data import *
@@ -62,13 +62,23 @@ def llm_no_context(question):
 
 
 if __name__ == '__main__':
-    # data_splitter_test()
-    question = "我有个朋友，叫做艾米，是个美妆博主，她想知道如何让她的肤质变好"
+    #data_splitter_test()
+    question = "hello"
     # llm_no_context(question)
     # source(question)
     #llm_QA_chains(question).stuff()
     #chat_llm(question)
     #data_splitter_test()
     #stream_chat_llm(question)
-    retrievers(question)
+    #retrievers(question)
     #chroma_source()
+    #to_json()
+    #print(list_file("data"))
+    #chroma_source("knowledge_base/test")
+    from langchain_core.callbacks import CallbackManager, StreamingStdOutCallbackHandler
+    from qstart import  Ollama
+    llm = Ollama(base_url="http://localhost:11434",
+                 model="qwen:7b",
+                 callback_manager=CallbackManager([StreamingStdOutCallbackHandler()]),
+                 )
+    llm.invoke(question)

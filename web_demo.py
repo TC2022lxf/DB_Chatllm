@@ -44,17 +44,17 @@ data_base = pd.DataFrame({
     '知识库': d_base,
 })
 llm_option = pd.DataFrame({
-    '语言模型': ["qwen", "qwen:14b","qwen:72b"]
+    '语言模型': ["qwen:7b", "qwen:14b","qwen:72b"]
 })
 
 # 选择知识库
 if "knowledge_base" not in st.session_state:
     st.session_state.knowledge_base = st.sidebar.selectbox(
-        '知识库的选择',
+        'KnowledgeBase',
         data_base['知识库'])
 else:
     st.session_state.knowledge_base = st.sidebar.selectbox(
-        '知识库的选择',
+        'KnowledgeBase',
         data_base['知识库'],
         index=data_base.index[data_base['知识库'] == st.session_state.knowledge_base].tolist()[0]
     )
@@ -62,11 +62,11 @@ else:
 # 选择模型
 if "llm" not in st.session_state:
     st.session_state.llm = st.sidebar.selectbox(
-        '语言模型的选择',
+        'LLM',
         llm_option['语言模型'])
 else:
     st.session_state.llm = st.sidebar.selectbox(
-        '语言模型的选择',
+        'LLM',
         llm_option['语言模型'],
         index=llm_option.index[llm_option['语言模型'] == st.session_state.llm].tolist()[0]
     )
