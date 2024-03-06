@@ -4,6 +4,8 @@ import re
 
 from langchain.text_splitter import MarkdownTextSplitter, MarkdownHeaderTextSplitter
 from langchain_community.document_loaders import UnstructuredMarkdownLoader
+from modelscope import AutoTokenizer
+
 from config import DEFAULT_DATA
 
 
@@ -29,6 +31,9 @@ def load_docx() -> str:
     data = loader.load()
     return str(data[0].page_content)
 
+tokenizer = AutoTokenizer.from_pretrained("qwen/Qwen-7B-Chat",trust_remote_code=True)
+def length_function(text):
+  return len(tokenizer.encode(text, add_special_tokens=False))
 
 def load_md_MHTS(doc_path):
     '''
@@ -42,7 +47,8 @@ def load_md_MHTS(doc_path):
         ("#", "Header 1"),
         ("##", "Header 2"),
         ("###", "Header 3"),
-        ("####", "Header 4")
+        ("####", "Header 4"),
+        ("#####", "Header 5")
     ]
     markdown_splitter = MarkdownHeaderTextSplitter(headers_to_split_on=headers_to_split_on)
     md_header_splits = markdown_splitter.split_text(markdown_text)
@@ -51,7 +57,7 @@ def load_md_MHTS(doc_path):
     from langchain.text_splitter import RecursiveCharacterTextSplitter
     chunk_size = 500
     chunk_overlap = 50
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap,length_function=length_function)
 
     # Split within each header group
     all_splits = []
