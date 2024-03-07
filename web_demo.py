@@ -9,7 +9,6 @@ from langchain_core.messages import AIMessage, HumanMessage
 from utils.retriever import retrievers
 from utils.load_data import load_data
 from utils.llm import *
-
 st.set_page_config(page_title='Qwen-Chatbot')  # 页面标题
 st.header('Chat_config:robot_face:')  # 标题头
 
