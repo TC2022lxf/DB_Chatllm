@@ -1,3 +1,4 @@
+import requests
 from langchain.chains import LLMChain
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain.retrievers.self_query.base import SelfQueryRetriever
@@ -82,6 +83,6 @@ if __name__ == '__main__':
     #              )
     # llm.invoke(question)
     #text="肉毒杆菌是一种生长在缺氧环境下的细菌，在罐头食品及密封腌渍食物中具有极强的生存能力，是毒性最强的细菌之一。肉毒杆菌是一种致命病菌，在繁殖过程中分泌肉毒毒素，该种毒素是已知的最剧毒物，可抑制胆碱能神经末梢释放乙酰胆碱，导致肌肉松弛型麻痹。军队常常将这种毒素用于生化武器。人们食入和吸收这种毒素后，神经系统将遭到破坏，出现眼睑下垂、复视、斜视、吞咽困难、头晕、呼吸困难和肌肉乏力等症状，严重者可因呼吸麻痹而死亡。  \n科学家和美容学家正是看中了肉毒杆菌毒素能使肌肉暂时麻痹这一功效。医学界原先将该毒素用于治疗面部痉挛和其他肌肉运动紊乱症，用它来麻痹肌肉神经，以此达到停止肌肉痉挛的目的。可在治疗过程中，医生们发现它在消除皱纹方面有着异乎寻常的功能，其效果远远超过其他任何一种化妆品或整容术。因此，利用肉毒杆菌毒素消除皱纹的整容手术应运而生，并因疗效显著而在很短的时间内就风靡整个美国。"
-    text = "我我我我我我我我我我我我"
-    tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen1.5-7B-Chat")
-    print(len(tokenizer.encode(text, add_special_tokens=False)))
+    # text = "我我我我我我我我我我我我"
+    # tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen1.5-7B-Chat")
+    # print(len(tokenizer.encode(text, add_special_tokens=False)))

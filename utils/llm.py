@@ -46,7 +46,7 @@ def load_llm():
     from langchain_core.callbacks import CallbackManager, StreamingStdOutCallbackHandler
 
     llm = Ollama(base_url="http://localhost:11434",
-                     model="qwen",
+                     model="qwen:7b",
                      callback_manager=CallbackManager([StreamingStdOutCallbackHandler()]),
                  )
 
