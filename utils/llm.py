@@ -51,31 +51,13 @@ def load_llm():
                  )
 
     return llm
-
-def llm_no_prompt(question):
-    '''
-    没有提示的，语言模型对话
-    :param question:
-    :return:
-    '''
-    prompt = create_prompt_template_no_context()
-    # context = retrievers(question)
-    llm_chain = LLMChain(prompt=prompt, llm=load_llm())
-    responde = llm_chain.run(question=question)
-    return responde
-
-def llm(question):
+def llm(question:str,db,stream,history=[]):
     '''
     有提示的语言模型对话
     :param question:
     :return:
     '''
-    prompt = create_prompt_template()
-    context = retrievers(question)
-    context = str(context[0].page_content)
-    print(context)
-    llm_chain = LLMChain(prompt=prompt, llm=load_llm())
-    responde = llm_chain.run(context=context,question=question)
+    knowledge_list=db
     return responde
 
 def llm_MHTS_SQ(question):
