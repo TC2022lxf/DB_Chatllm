@@ -112,7 +112,7 @@ def chroma_source(persist_directory):
                                         persist_directory=persist_directory)  # 标题和内容同时加载
 
     for file in md_files:
-        all_splits,all_metadata = load_md_MHTS_source(knowledge_file,file)
+        all_splits,all_metadata = load_md_MHTS(knowledge_file,file)
         vectorstore.add_texts(texts=all_splits, metadatas=all_metadata)
 
     vectorstore.persist()  # 向量数据库的持久化
@@ -123,7 +123,7 @@ def add_chroma(persist_directory):
     # persist_directory = os.path.join('knowledge_base', "chroma_source")
     model = embedding_data()
     vectorstore = Chroma(persist_directory=persist_directory, embedding_function=model)
-    all_splits,all_metadata = load_md_MHTS_source()
+    all_splits,all_metadata = load_md_MHTS()
     vectorstore.add_texts(texts=all_splits, metadatas=all_metadata)
     vectorstore.persist()
     return vectorstore

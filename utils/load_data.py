@@ -8,39 +8,22 @@ from modelscope import AutoTokenizer
 
 from config import DEFAULT_DATA
 
+# 分词器
+tokenizer = AutoTokenizer.from_pretrained("qwen/Qwen-7B-Chat", trust_remote_code=True)
 
 
-def load_data():
-    '''
-    加载数据
-    :param path: md文件路径
-    :return:
-    '''
-    with open(doc_path, 'r', encoding='utf-8') as files:
-        markdown_text = files.read()
-    markdown_splitter = MarkdownTextSplitter(chunk_size=500, chunk_overlap=50)
-    docs = markdown_splitter.create_documents([markdown_text])  # 分割
-    return docs
-
-
-def load_docx() -> str:
-    from langchain.document_loaders import Docx2txtLoader
-
-    loader = Docx2txtLoader(doc_path)
-
-    data = loader.load()
-    return str(data[0].page_content)
-
-tokenizer = AutoTokenizer.from_pretrained("qwen/Qwen-7B-Chat",trust_remote_code=True)
 def length_function(text):
-  return len(tokenizer.encode(text, add_special_tokens=False))
+    return len(tokenizer.encode(text, add_special_tokens=False))
 
-def load_md_MHTS(doc_path):
+
+def load_md_MHTS(path,md_name):
     '''
-    根据md文件的标题分割文档。
-    :return:
+    :param path:文件夹路径
+    :param md_name: 文件夹内的md文件名
+    :return: 分割后的文本列表
     '''
-    with open(doc_path, 'r', encoding='utf-8') as files:
+    md_path = path+'/'+md_name
+    with open(md_path, 'r', encoding='utf-8') as files:
         markdown_text = files.read()
 
     headers_to_split_on = [
@@ -48,7 +31,8 @@ def load_md_MHTS(doc_path):
         ("##", "Header 2"),
         ("###", "Header 3"),
         ("####", "Header 4"),
-        ("#####", "Header 5")
+        ("#####", "Header 5"),
+        ("######", "Header 6")
     ]
     markdown_splitter = MarkdownHeaderTextSplitter(headers_to_split_on=headers_to_split_on)
     md_header_splits = markdown_splitter.split_text(markdown_text)
@@ -57,54 +41,70 @@ def load_md_MHTS(doc_path):
     from langchain.text_splitter import RecursiveCharacterTextSplitter
     chunk_size = 500
     chunk_overlap = 50
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap,length_function=length_function)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap,
+                                                   length_function=length_function)
 
     # Split within each header group
     all_splits = []
     all_metadatas = []
     for header_group in md_header_splits:
-        _splits = text_splitter.split_text(header_group.page_content)
+        header_group.metadata['source']=md_path.split('/')[-1] # 添加来源为该md文件
+        print(header_group)
+        _splits = text_splitter.split_text(header_group.page_content) # 每个标题中的内容再次分割
         _metadatas = [header_group.metadata for _ in _splits]
         all_splits += _splits
         all_metadatas += _metadatas
-    return all_splits,all_metadatas
+    to_json(path, all_splits, all_metadatas)  # 保存到文件同一目录下，同一名为knowledge
+    return all_splits, all_metadatas
 
-def load_md_MHTS_source(doc_path,name):
+def to_json(path, all_splits, all_metadata):
     '''
-    在上面函数的all_splits,all_metadatas基础上的元数据加上source来源
+    记录该目录下的所有md文件内容
+    :param path:
+    :param all_splits:
+    :param all_metadata:
     :return:
     '''
-    all_metadata = []
-    path=doc_path+"/"+name
-    all_splits, all_metadatas = load_md_MHTS(path)
-    for i, metadata in enumerate(all_metadatas):  # 加source键
-        new_metadata = metadata.copy()
-        new_metadata["source"] = str(name.split(".")[0])
-        all_metadata.append(new_metadata)
-    to_json(doc_path,name.split(".")[0],all_splits,all_metadata)
-    return all_splits,all_metadata
-
-def to_json(path,name,all_splits,all_metadata):
-    json_path = path+"/knowledge.json"
+    json_path = path + "/knowledge.json"
     print(json_path)
-    combined_list = [{'page_content':content,'metadata':metadata} for content,metadata in zip(all_splits,all_metadata)]
-    for i,m in enumerate(combined_list):
-        print(i,m)
+    combined_list = [{'page_content': content, 'metadata': metadata} for content, metadata in
+                     zip(all_splits, all_metadata)]
+    for i, m in enumerate(combined_list):
+        print(i, m)
 
     if not os.path.exists(json_path):
-        with open(json_path, 'w',encoding='utf-8') as json_file:
+        with open(json_path, 'w', encoding='utf-8') as json_file:
             json.dump(combined_list, json_file, ensure_ascii=False, indent=2)
     else:
         # 读取现有内容
-        with open(json_path, 'r',encoding='utf-8') as json_file:
+        with open(json_path, 'r', encoding='utf-8') as json_file:
             existing_data = json.load(json_file)
         # 将新数据追加到现有内容中
         existing_data.append(combined_list)
         # 写入到文件中
-        with open(json_path, 'w',encoding='utf-8') as json_file:
+        with open(json_path, 'w', encoding='utf-8') as json_file:
             json.dump(existing_data, json_file, ensure_ascii=False, indent=2)
 
+def read_json(json_path):
+    '''
+    读取json中的content和metadata形成两个列表
+    :param json_path:
+    :return:
+    '''
+    with open(json_path, 'r',encoding='utf-8') as file:
+        data = json.load(file)
+    page_contents = []
+    metadatas = []
+    # 遍历每个对象
+    for item in data:
+        # 将page_content添加到page_contents列表中
+        page_contents.append(item["page_content"])
+        # 将metadata添加到metadatas列表中
+        metadatas.append(item["metadata"])
+    return page_contents,metadatas
+
+
 if __name__ == '__main__':
-    doc_path = os.path.join(DEFAULT_DATA, 'Skincare.md')
-
-
+    path = '../data'
+    load_md_MHTS(path,'Skincare.md')
+    read_json('../data/knowledge.json')
