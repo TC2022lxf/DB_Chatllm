@@ -11,7 +11,6 @@ from config import DEFAULT_DATA
 # 分词器
 tokenizer = AutoTokenizer.from_pretrained("qwen/Qwen-7B-Chat", trust_remote_code=True)
 
-
 def length_function(text):
     return len(tokenizer.encode(text, add_special_tokens=False))
 
