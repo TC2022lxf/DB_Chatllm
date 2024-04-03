@@ -15,6 +15,7 @@ def length_function(text):
     return len(tokenizer.encode(text, add_special_tokens=False))
 
 
+
 def load_md_MHTS(path,md_name):
     '''
     :param path:文件夹路径
