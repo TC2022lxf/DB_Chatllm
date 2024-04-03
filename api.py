@@ -28,6 +28,7 @@ def load_llm():
         def __init__(self):
             self.str = ''
         def on_llm_new_token(self, token: str, **kwargs):
+            logger.info(f"新的token:{token}")
             self.str += token
         def on_llm_end(self, response: LLMResult, **kwargs: Any) -> None:
             logger.info("最后一个token生成结束")
