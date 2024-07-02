@@ -7,9 +7,8 @@ from langchain.retrievers.document_compressors import LLMChainExtractor
 from langchain_community.llms.llamacpp import LlamaCpp
 from langchain_core.callbacks import CallbackManager, StreamingStdOutCallbackHandler
 from langchain_core.outputs import LLMResult
-
+from loguru import logger
 from utils.prompt import *
-from utils.retriever import retrievers
 from config import LLM_MODELS,MODEL_PATH
 from utils.db import *
 class ChainStreamHandler(StreamingStdOutCallbackHandler):

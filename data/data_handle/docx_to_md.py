@@ -1,3 +1,6 @@
+"""
+将docx格式的文档转换成md格式的文档
+"""
 import os
 import re
 
@@ -20,12 +23,12 @@ def handle_picture(part):
     :return:
     '''
     try:
-        os.makedirs("img_ori", exist_ok=True)
+        os.makedirs("../../utils/img_ori", exist_ok=True)
         print(f"文件夹 img_ori 已存在或已创建")
     except OSError as e:
         print(f"创建文件夹时出错: {e.strerror}")
     try:
-        os.makedirs("img_jpeg", exist_ok=True)
+        os.makedirs("../../utils/img_jpeg", exist_ok=True)
         print(f"文件夹 img_ori 已存在或已创建")
     except OSError as e:
         print(f"创建文件夹时出错: {e.strerror}")
@@ -138,5 +141,5 @@ def docx_to_markdown(docx_name, markdown_name):
 if __name__ == '__main__':
     # docx_name = r"D:\project\cosmetic-langchain-llm\unstructured_data\29531-i10.docx"
     docx_path = r"C:\Users\林新锋\Desktop\EMBED VisioViewer.docx"
-    markdown_path = r'output.md'
+    markdown_path = r'../../utils/output.md'
     docx_to_markdown(docx_path, markdown_path)

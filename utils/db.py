@@ -1,3 +1,6 @@
+"""
+用chroma构建向量数据库
+"""
 import os
 
 from langchain.chains.query_constructor.schema import AttributeInfo
