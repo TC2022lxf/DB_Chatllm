@@ -8,7 +8,9 @@ pip install requirements.txt -r
 curl -fsSL https://ollama.com/install.sh | sh
 ollama pull qwen:7b
 ```
-
+## 关于ollama面向多用户应用级并发的做法
+https://zhuanlan.zhihu.com/p/691506962
+docker+Nginx+Ollama（Linux）使用ollama并发
 # 快速开始
 为主页面的入口，副页面为pages文件下的三个代码
 ```bash
