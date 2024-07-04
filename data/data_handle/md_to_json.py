@@ -1,5 +1,11 @@
 """
 带有目录的md格式，根据标题分级划分层次
+字典框架：
+title : {
+    parent : "parent_title",
+    content: "content",
+    sub_title :{}
+}
 """
 from langchain_core.messages import SystemMessage, HumanMessage
 
