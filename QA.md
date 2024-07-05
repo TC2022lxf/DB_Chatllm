@@ -273,7 +273,7 @@ $$ \theta \leftarrow \theta - \eta \frac{\partial \text{Loss}}{\partial \theta} 
 - $\frac{\partial \text{Loss}}{\partial \theta}$ 是损失函数相对于参数的梯度。
 
 #### Adam优化算法更新参数
-在Transformer中，通常使用Adam优化算法来更新参数，其参数更新公式如下：
+在Transformer中，通常使用Adam优化算法来更新参数，其参数更新公式如下： 
 
 $$ m_t = \beta_1 m_{t-1} + (1 - \beta_1) \nabla_\theta L(\theta_{t-1}) $$
 $$ v_t = \beta_2 v_{t-1} + (1 - \beta_2) (\nabla_\theta L(\theta_{t-1}))^2 $$
