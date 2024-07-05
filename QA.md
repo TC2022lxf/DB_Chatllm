@@ -69,7 +69,7 @@ $  PE_{(pos, 2i)} = \sin\left(\frac{pos}{10000^{2i/d_{\text{model}}}}\right)  $
 $  PE_{(pos, 2i+1)} = \cos\left(\frac{pos}{10000^{2i/d_{\text{model}}}}\right)  $
 
 其中：
-- $  pos  $ 是词在序列中的位置。
+- $ pos $ 是词在序列中的位置。
 - $  i  $ 是位置编码向量的维度。
 
 ### 输出：
