@@ -302,7 +302,7 @@ $$ \theta _t = \theta _{t-1} - \eta \frac{\hat{m} _t}{\sqrt{\hat{v} _t} + \epsil
 
 # QA-8-RAG
 ## RAG pipeline的整个流程
-- 请求转换、路由和请求构造、索引和检索、生成和评估
+- 请求转换、路由和请求构造、索引和检索、生成和评估。[来源](https://www.cnblogs.com/charlieroro/p/18087301)
 ## 为什么要用RAG
 1. **新数据**:
    - llms并不了解你的数据，且无法获取与此相关的最新数据，它们是事先使用来自互联网的公共信息训练好的，因此并不是专有数据库的专家也不会针对该数据库进行更新
@@ -320,4 +320,189 @@ $$ \theta _t = \theta _{t-1} - \eta \frac{\hat{m} _t}{\sqrt{\hat{v} _t} + \epsil
    - 将RAG和倒数排名融合([RRF](https://arxiv.org/abs/2402.03367))结合。生成多个查询(从多个角度添加上下文)，并使用倒数分数($\frac{1}{\text{rank} + k}$)对查询结果重新排序，然后将文档和分数进行融合，从而得到更全面和准确的回答
 4. **Step-Back Prompting**
    - 这是一种更加技术性的提示技术，设计stepback-question后通过LLM的抽象来衍生出更高层次的概念和首要原则.根据此概念和首要原则结合问题进行推理。[论文](https://arxiv.org/abs/2310.06117)和[博客](https://blog.csdn.net/m0_49651195/article/details/140265857)
+5. **Query Expansion**
+   - 对查询进行扩展：通过为LLM提供一个查询并生成新的内容来扩展查询的过程
+   - **使用生成的答案进行扩展**：LLM基于查询生成一个答案，然后将答案追加到查询中并执行嵌入搜索。通过使用假设的答案来扩展查询，可以检索到相关向量空间的信息。
+   - **多个查询扩展**： LLM基于查询生成多个额外的类似查询，然后将这些额外的查询和原始查询一同进行向量库检索，可以提高准确性。值得注意的是需要迭代提示才能找出最佳生成查询的效果。
+
+## 路由
+环境中可能出现多个数据库或者向量存储，答案可能位于其中任何一个，因此需要对查询进行路由。
+1. **逻辑路由**
+   - 让LLM根据预定义的路径来决定参考知识库的哪些部分。通过LLM来选择知识库。根据知识库的概述来判断应该选择哪个知识库
+2. **语义路由**
+   - 不同类型问题对应不同的嵌入提示，如化学领域、物理领域的嵌入提示。计算嵌入查询和嵌入提示的相似度，选择最高相似度的嵌入提示，随后应用到llm中(可直接响应，也可根据提示对应的知识库检索后再响应)
+
+## 请求构造
+数据存储有结构性(SQL)的和非结构性(vectorstore)的以及半结构半非结构(graph db),不同结构性对应不同的请求
+1. **自查询检索器-Self-query-retriever**
+   - 向量数据库中带有清晰元数据文件的非结构化数据可以启用此类retriever，任何问题都能被拆分成一个查询和过滤数据(metadata)，再经过llm整理格式，随后进行向量库检索。
+2. **少样本实例**
+   - 为llm提高少量的QA示例，如果示例较多则可以进行向量存储后动态检索出部分示例。
+3. **fine-tuning**
+   - 相比较于将整个schema添加在llm提示中，直接通过微调可以有效提高准确性。
+
+## 索引
+索引大致指的是被查询的数据如何规划构建，chunk划分和嵌入是实现准确检索的索引核心部分。简单来说，将用户请求转化成一个嵌入向量(embedding)并通过语义相似性检索信息，向量之间相似计算可以是
+- 余弦相似度
+$$\text{cosine similarity} = \frac{\vec{A} \cdot \vec{B}}{||\vec{A}|| \cdot ||\vec{B}||}$$
+- 向量内积
+$$\vec{A} \cdot \vec{B} = \sum_{i=1}^{n} A _i \times B _i$$
+- 欧式距离
+$$\text{Euclidean distance} = \sqrt{\sum_{i=1}^{n} (A_i - B_i)^2}$$
+
+### Chunk优化
+考虑数据本身以及运用场景
+
+1. **基于规则**(使用分隔符切分)
+   - **固定长度**：固定数目字符划分Chunk，缓解上下遗失的方式为添加重叠部分
+   - **NLTK语句分词器(sentence tokenizer)**:将给定的文本切分成语句。受限于对底层文本的语义理解
+   - **spacy语句分割器**：另一种基于语句进行拆分，也于NLTK存在同样问题
+   - **递归结构感知分割**：试图平衡固定的块大小和语言边界，提供精确的上下文控制。难度高
+   - **结构感知拆分**：根据句子、段落、部分或章节进行划分
+   - **内容感知拆分**：侧重于内容类型和结构，确保内容类型不会在块中混合
+
+### 多表示索引
+将文本转换为压缩的检索单元
+1. **父文档**
+   - 若干的小chunk作为叶子节点，其父节点均为其叶子的摘要，叶子节点小chunk的元数据保存其所属的父节点(大chunk)，父节点存储在inmemorystore中，叶子节点嵌入到vectorstore中，从vectorstor中检索出若干个叶子节点(小chunk)，再从inmemorystore中索引出父节点(大chunk)，将小chunk和大chunk一同传递给LLM。
+
+### 密集检索(dense X retrievel)
+[论文](https://arxiv.org/pdf/2312.06648)中定义proposition为最小分块。每个proposition需要满足三个条件：
+- 1 文本中不同含义，所有proposition组合可表示整个文章 
+- 2 最小单元：不可再分proposition
+- 3 上下分相关和包含：每个proposition应包含所需的上下文
+
+相关[代码](https://github.com/chentong0/factoid-wiki):通过微调模型进行proposition提取。举例：
+```markdown
+title = "Leaning Tower of Pisa"
+section = ""
+content = "Prior to restoration work performed between 1990 and 2001, Leaning Tower of Pisa leaned at an angle of 5.5 degrees, but the tower now leans at about 3.99 degrees. This means the top of the tower is displaced horizontally 3.9 meters (12 ft 10 in) from the center."
+
+input_text = f"Title: {title}. Section: {section}. Content: {content}"
+
+output = [
+  "Prior to restoration work performed between 1990 and 2001, Leaning Tower of Pisa leaned at an angle of 5.5 degrees.",
+  "Leaning Tower of Pisa now leans at about 3.99 degrees.",
+  "The top of Leaning Tower of Pisa is displaced horizontally 3.9 meters (12 ft 10 in) from the center."
+]
+```
+
+### 特定嵌入
+领域特定/高级嵌入模型
+- fine-tuning对嵌入模型进行微调可以帮助改进检索能力。对于固定领域的文档有效。可提升5-10%
+- [ColBERT](https://github.com/stanford-futuredata/ColBERT):一个端到端且快速准确的检索模型，在数十毫秒内对大型文本集合进行基于 BERT 的可扩展搜索。它会将每个段落编码为token级嵌入的矩阵(如下蓝色所示)。当执行一个搜索时，它会将用户查询编码为另一个token级嵌入的矩阵(如下绿色所示)。然后基于上下文匹使用"可扩展的向量相似性(MaxSim)操作"来匹配查询段落。
+
+### 分层索引
+1. **RAPTOR模型**：
+   - 对文本块的聚类进行摘要来实现更准确的检索，llamaindex提供了这种[实现](https://github.com/run-llama/llama_index/blob/main/llama-index-packs/llama-index-packs-raptor/examples/raptor.ipynb)
+
+## 检索
+### Ranking
+1. **提升多样性**：
+这里有必要提一下Haystack的DiversityRanker：
+   - 首先计算每个文档的嵌入向量，然后使用一个sentence-transformer模型进行查询搜索
+   - 将语义上和查询最接近的文档作为第一个选择的文档
+   - 对于剩下的每个文档，会计算和所选择文档的平均相似性
+   - 然后选择和所选择文档最不相似的文档
+   - 然后重复上述步骤，直到选出所有文档，这样就得到了一个整体多样性从高到低排序的文档列表。
+
+2. **[LostInTheMiddleReranker](https://arxiv.org/abs/2307.03172)**
+   - 通过重排序来让最佳的文档位于上下文窗口的开头和结尾。建议在相关性和多样性之后再使用该Reranker
+
+3. **[CohereRerank](https://cohere.com/blog/rerank)**
+    - rerank端点充当搜索的最后阶段，搜索出的结果列表输入到rerank端点中，该端点由rerank大语言模型支持，该模型计算查询与每个初始搜索结果的相关性的分数，从而rerank
+    ```
+    results = co.rerank(query=query, documents=documents, top_n=3, model="rerank-multilingual-v2.0")
+    ```
+
+4. **[bge-rerank](https://www.llamaindex.ai/blog/boosting-rag-picking-the-best-embedding-reranker-models-42d079022e83)**
+   - reranker模型与嵌入模型需要自行探索。[bge-reranker-base](https://huggingface.co/BAAI/bge-reranker-base)：通常可以提高嵌入的命中率和 MRR。
+
+5. **RankGPT**
+   - 为了解决检索上下文大于LLM的上下文窗口的问题，该方法使用了一种"滑动窗口"策略，即在滑动窗口内实现渐进排名。这种方式击败大部分rerank，注意的是延迟和成本。
+   - 比如：有8个段落但llm上下文只能支持6个段落，无法全部输入让llm进行rerank，因此采用滑动窗口为4，step为2，进行3轮rerank，需要注意的是滑动窗口是从后向前滑动，每一轮rerank后对新的排序段落进行rerank。
+   ![alt text](readme_image/img_3.png)
+
+6. **[RAG-fusion](https://towardsdatascience.com/forget-rag-the-future-is-rag-fusion-1147298d8ad1)**
+   - 这是 Adrian Raudaschl提出的一种方法,使用Reciprocal Rank Fusion (RRF)和生成查询来提高检索质量。该方法会使用一个LLM根据输入生成多个用户查询，并为每个查询运行一个向量搜索，最后根据RRF聚合并优化结果。在最后一步中，LLM会使用查询和重排序列表来生成最终输出。这种方法在响应查询时具有更好的深度，因此非常流行.[demo code](https://github.com/langchain-ai/langchain/blob/master/cookbook/rag_fusion.ipynb)
+   RRF公式：
+   $$\operatorname{RRFscore}(d \in D)=\sum_{r \in R} \frac{1}{k+r(d)}$$
+   - D表示文档总量，d表示某个文档
+   - R表示R个不同排名的列表，每个列表有n个文档，对应多个查询，每个查询生成一个多文档的列表。
+   - k为偏置项常量，常见k为1，避免分母接近0
+   - RRF由于是非学习的rerank，因此可适用大部分项目且效果较好，但对于部分项目，也许使用学习的rerank-model效果会好些。
+
+### 提示压缩(Prompt Compression)
+1. **[LongLLMLingua](https://arxiv.org/abs/2310.06839)**
+   - 该方式基于[Selective-Context](https://arxiv.org/abs/2310.06201) 和 [LLMLingua](https://arxiv.org/abs/2310.05736) 框架，是用于提示压缩的SOTA方法，针对成本和延迟进行了优化
+   - 除此之外，LongLLMLingua采用了一种"采用问题感知由粗到细的压缩方法、文档重新排序机制(针对中间信息衰弱)、动态压缩比例（根据重要性分数）、压缩后的子序列恢复（也许部分信息会被压缩错误，因此用原序列进行恢复）等策略来提升大型语言模型对关键信息的感知能力"的方式来提升检索质量。该[方法](https://llmlingua.com/?utm_source=div.beehiiv.com&utm_medium=referral&utm_campaign=advanced-rag-series-retrieval)特别适用于长上下文文档，解决"中间遗失"问题。[code](https://github.com/microsoft/LLMLingua),同时也集成到了langchian和llamaindex，见方法
+
+2. **[LLMLingua-2](https://arxiv.org/abs/2403.12968)**
+   - 提升
+
+3. **[RECOMP](https://arxiv.org/abs/2310.04408)**
+   - 使用"压缩器"，该方法使用文本摘要作为LLMs的上下文来降低成本并提升推理质量。两个压缩器分别表示： a)提取压缩器，用于从检索的文档中选择相关语句；b)抽象压缩器，用于根据多个文档的合成信息来创建摘要。
+
+4. **[Walking Down the Memory Maze](https://arxiv.org/abs/2310.05029)**
+   - 该方法引入了MEMWALKER的概念，即按照树的格式来处理上下文。该方法会对上下文划分chunk，然后对每个部分进行概括。为了回答一个查询，该模型会沿着树结构来迭代提示，以此来找出包含问题答案的段。特别适用于较长序列。
+
+
+5. **CRAG**
+   - 它使用一个轻量的检索评估器以及外部数据源(如web搜索)来补充最终的生成步骤。
+   - 检索评估器(model)会对检索的文档和输入进行评估，并给出一个置信度，会产生3个动作：correct、ambiguous、incorect，如果correct则进行knowledge refinement，如果ambiguous则同时进行knowledge refinement和knowledge searching in web，如果incorrect则直接进行knowledge searching in web
+
+6. **[FLARE](https://arxiv.org/abs/2305.06983)**
+   - 该方法特别适用于长文本生成，它会生成一个临时的"下一个语句"，并根据该语句是否包含低概率tokens来决定是否执行检索。该方法可以很好地决定什么时候进行检索，可以降低幻觉以及非事实的输出
+   - 对于输入x，生成一个回答，并判断回答中是否存在低概率token，每个步骤都会根据上一步骤的查询以及这一步骤的回答生成这一步骤的查询，如果需要检索则用这一步骤的查询进行检索并添加到输入中，以帮助未来的生成，以此类推
+
+## 生成和评估
+### 生成
+1. **Corrective RAG (CRAG)**
+   - 结合检索方法中提到的，该方法会将检索出的内容分配置信度，分为3个类，正确、模糊、不正确，因此可以用来增加生成。
+
+2. **[Self-RAG](https://arxiv.org/abs/2310.11511)**
+   - 将任一LLM训练为可以对自己生成的结果进行自我反省的模型
+   - 然后LLM会通过并行处理这些检索到的段落来并发生成结果。该步骤会触发LLM生成用于评估这些结果的critique tokens。
+   - 最后根据"真实性"和"相关性"来选择用于最终generation的最佳结果。
+   - 下面Langchain的[示意图](https://blog.langchain.dev/agentic-rag-with-langgraph)展示了基于上述定义的reflection token的Self-RAG 推理决策算法。
+   ![](https://img2024.cnblogs.com/blog/1334952/202403/1334952-20240325180012273-1138595467.png)
+
+3. **[RRR (Rewrite-Retrieve-Read)](https://arxiv.org/pdf/2305.14283.pdf)**
+   - 该框架假设用户查询可以被LLM进一步优化(及重写)，从而实现更精确的检索。虽然这种方式可以通过LLMs的查询重写过程来提升表现，但也存在推理错误或无效查询之类的问题，因此可能不适用于部署在生产环境中。
+
+### 评估
+RAG pipeline中实现评估的方式有很多种，如使用一组Q&A作为测试数据集，并将输出与实际答案进行对比验证。但这种方式的缺点是不仅需要花费大量时间，并且增加了针对数据集本身优化pipeline的风险(而非可能存在很多边缘场景的现实世界)。
+1. **[RAGas](https://github.com/explodinggradients/ragas)**
+
+- RAGAs(RAG Assessment的简称)是一个用于评估RAG pipeline的开源框架，它可以通过如下方式评估pipeline：
+   - 提供基于"[ground truth](https://domino.ai/data-science-dictionary/ground-truth)"(真实数据)来生成测试数据的方式
+   - 为检索和generation阶段以独立或端到端的方式提供基于指标的评估
+
+- 它使用如下RAG特征作为指标：
+
+   - 真实性：事实一致性
+   - 回答相关性：问题和查询的相关性
+   - 上下文准确性：校验相关chunks的排名是否更高
+   - 批判(Critique)：根据预定义的特征(例如无害和正确性)评估提交
+   - 上下文回顾：通过比较ground truth和上下文来校验是否检索到所有相关信息
+   - 上下文实体回顾：评估上下文检索到的和ground truth中的实体数目
+   - 上下文相关性：检索到的上下文和提示的相关性
+   - 回答语义相似性：生成的答案和实际的语义相似性
+   - 回答正确性：评估生成答案与实际答案的准确性和一致性
+- 上面提供了一组可以全面评估RAG的列表，推荐阅读[Ragas](https://docs.ragas.io/en/stable)文档。
+
+2. **[Langsmith](https://www.langchain.com/langsmith)**
+   - LangSmith 是一个可以帮助调试、测试、评估和监控基于任何LLM空间构建的chains和agents平台。
+   - 通过将Langsmith和RAG进行结合可以帮助我们更深入地了解结果。通过Langsmith评估logging和tracing部分可以更好地了解到对哪个阶段进行优化可以提升retriever或generator。
+
+3. **[DeepEval](https://github.com/confident-ai/deepeval)**
+   - 另一种值得提及的评估框架称为DeepEval。它提供了14种以上涵盖RAG和微调的指标，包括G-Eval、RAGAS、Summarization、Hallucination、Bias、Toxicity 等。
+
+   - 这些指标的自解释信很好地说明了指标评分的能力，使之更易于调试。这是跟上面的RAGAs的关键区别。
+
+   - 此外，它还有一些不错的特性，如集成Pytest (开发者友好)，其模块化组件等也是开源的。
+
+   - Evaluate → Iterate → Optimize
+
+   - 通过生成和评估阶段，我们不仅可以部署一个RAG系统，还可以评估、迭代并针对我们设计的特定场景进行优化
 # QA-9-agent
