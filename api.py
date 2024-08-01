@@ -2,6 +2,7 @@ import datetime
 import time
 from typing import Optional
 
+import requests
 import uvicorn
 from fastapi import FastAPI
 from langchain_community.chat_models import ChatOllama
@@ -98,6 +99,11 @@ def qa_with_kb_api(user_id:str,chat_id:str,question:str,stream:Optional[bool]=Fa
         return answer
 
 if __name__ == '__main__':
-    uvicorn.run(app, host="0.0.0.0", port=8502, workers=1)
+    from langchain_anthropic import ChatAnthropic
+    #uvicorn.run(app, host="0.0.0.0", port=8502, workers=1)
     # record_all_history("1","1","hello","answer")
     # print(global_history_dict)
+    # Use a pipeline as a high-level helper
+    # index
+    # 模型下载
+    # 模型下载
