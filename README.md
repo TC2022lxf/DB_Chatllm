@@ -18,10 +18,10 @@ streamlit run web_demo.py
 ```
 
 # 页面展示
-![img.png](pages/img.png)
+![img.png](readme_image/img.png)
 主页面web demo用来配置语言模型的参数以及选择知识库
-![img_1.png](pages/img_1.png)
-![img_2.png](pages/img_2.png)
+![img_1.png](readme_image/img_1.png)
+![img_2.png](readme_image/img_2.png)
 可创建或继续添加知识进入知识库中
 
 # 数据处理
