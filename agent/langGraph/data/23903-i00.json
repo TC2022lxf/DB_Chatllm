@@ -1,0 +1,394 @@
+[
+    {
+        "parent_title": null,
+        "title": null,
+        "level": null,
+        "unique_id": null,
+        "parent_id": null,
+        "content": "\nsummary:Summary:\n\nThe document outlines the Idle Mode Redial mechanism, which enables seamless switching between voice and video services in 3GPP-based systems. This mechanism allows users to switch between voice and video modes during an established call or when radio conditions change, facilitating user-friendly service transitions.\n\nKey components include:\n1) Switching modes (voice to video or vice versa) while maintaining the same recipient.\n2) Video call termination for degraded radio coverage, allowing a voice call attempt instead.\n3) Automatic voice call establishment if initial video call setup fails.\n\nOptimization of the Man Machine Interface (MMI) in user equipment is crucial. Trade-offs between 'speed of redial' and interactions with content servers supporting only video calls may occur. The document also discusses supplementary services, their applicability to both telephony and bearer services, and configurations needed for effective operation.\n\nThe mechanism allows separate handling of voice and video calls without altering existing billing systems but may introduce difficulties correlating components across different billing systems. Additional signaling might be required in call detail records (CDRs) following specific guidelines.\n\nChallenges include accurate collection of call statistics due to potential discrepancies between B-party issues not fully signaled between MSCs, impacting A-party evaluations. Upgrading core specifications could facilitate better statistics collection on redial attempts for both voice and video calls.\n\nIntroducing a \"redial flag\" in CDRs for mobile-originated calls might enhance transparency regarding call retries but could affect customer expectations under different billing models. The document also highlights updates from SP-26 to SP-88E, detailing versions 2.0.0 to 18.0.0 with each update corresponding to a new release (Rel-7 through Rel-18).",
+        "children": [
+            {
+                "parent_title": null,
+                "title": "Foreword",
+                "level": 1,
+                "unique_id": "cf1cccbf-d80f-4a52-a273-a6fa75453762",
+                "parent_id": null,
+                "content": "This Technical Report has been produced by the 3rd Generation Partnership Project (3GPP).\nThe contents of the present document are subject to continuing work within the TSG and may change following formal TSG approval. Should the TSG modify the contents of the present document, it will be re-released by the TSG with an identifying change of release date and an increase in version number as follows:\nVersion x.y.z\nwhere:\nx\tthe first digit:\n1\tpresented to TSG for information;\n2\tpresented to TSG for approval;\n3\tor greater indicates TSG approved document under change control.\ny\tthe second digit is incremented for all changes of substance, i.e. technical enhancements, corrections, updates, etc.\nz\tthe third digit is incremented when editorial only changes have been incorporated in the document.\n",
+                "children": []
+            },
+            {
+                "parent_title": null,
+                "title": "Introduction",
+                "level": 1,
+                "unique_id": "4b5362a3-b6be-44d6-b524-c17abd6b7f30",
+                "parent_id": null,
+                "content": "Many 3GPP operators regard circuit switched video services as a key part of UMTS. However there is a strong desire to have an effective and user friendly method of switching between voice and video services when the user desires and/or when radio conditions change and video mode is no longer available.\nFollowing a study of alternative mechanisms, this Technical Report describes the idle mode redial mechanism which 3GPP based systems can use to enhance switching between voice and video services.\n",
+                "children": []
+            },
+            {
+                "parent_title": null,
+                "title": "1\tScope",
+                "level": 1,
+                "unique_id": "76d3cb38-fb9a-41e4-943d-eb4ea0f2de94",
+                "parent_id": null,
+                "content": "The present document describes the idle mode redial mechanism which 3GPP based systems can use to enhance switching between circuit switched voice and video services.\n",
+                "children": []
+            },
+            {
+                "parent_title": null,
+                "title": "2\tReferences",
+                "level": 1,
+                "unique_id": "3e7c9f74-882e-4f62-b53f-ccf787194b75",
+                "parent_id": null,
+                "content": "The following documents contain provisions which, through reference in this text, constitute provisions of the present document.\n-\tReferences are either specific (identified by date of publication, edition number, version number, etc.) or non specific.\n-\tFor a specific reference, subsequent revisions do not apply.\n-\tFor a non-specific reference, the latest version applies. In the case of a reference to a 3GPP document (including a GSM document), a non-specific reference implicitly refers to the latest version of that document in the same Release as the present document.\n[1]\t3GPP TR 21.905: \"Vocabulary for 3GPP Specifications\".\n[2]\t3GPP TS 44.018: \"Mobile radio interface layer 3 specification, Radio Resource Control Protocol\".\n[3]\t3GPP TS 48.008: \"Mobile-services Switching Centre – Base Station System (MSC – BSS) interface; layer 3 specification\".\n[4]\t3GPP TS 25.331: \"Radio Resource Control (RRC) protocol specification\".\n[5]\t3GPP TS 22.004: \"General on supplementary services\".\n[6]\t3GPP TS 45.008: \"Radio subsystem link control\".\n[7]\t3GPP TS 24.008: \"Mobile radio interface Layer 3 specification; Core network protocols; Stage 3\".\n[8]\t3GPP TS 23.009: \"Handover procedures\".\n[9]\t3GPP TS 32.205: \"Telecommunication management; Charging management; Charging data description for the Circuit Switched (CS) domain\".\n[10]\t3GPP TS 22.082: \"Call Forwarding (CF) supplementary services - Stage 1\".\n[11]\t3GPP TS 23.082: \"Call Forwarding (CF) supplementary services - Stage 2\".\n[12]\t3GPP TS 23.205: \"Bearer-independent CS Core Network\".\n",
+                "children": []
+            },
+            {
+                "parent_title": null,
+                "title": "3\tDefinitions, symbols and abbreviations",
+                "level": 1,
+                "unique_id": "d24d4c7f-55b3-428a-8d6a-eb36823ba517",
+                "parent_id": null,
+                "content": "\nsummary:<abstract>\nThe terms \"party\" refers to the caller (A party) and the called party (B party), as defined in TR 21.905 [1].\n</abstract>",
+                "children": [
+                    {
+                        "parent_title": "3\tDefinitions, symbols and abbreviations",
+                        "title": "3.1\tDefinitions",
+                        "level": 2,
+                        "unique_id": "023570f9-7128-40d6-977b-b66e318e2ed0",
+                        "parent_id": "d24d4c7f-55b3-428a-8d6a-eb36823ba517",
+                        "content": "For the purposes of the present document, the following terms and definitions given in TR 21.905 [1] and the following apply.\nA party: the calling party.\nB party: the called party.\n",
+                        "children": []
+                    }
+                ]
+            },
+            {
+                "parent_title": null,
+                "title": "4\tDescription of idle mode redial switching between voice and video",
+                "level": 1,
+                "unique_id": "1f167c73-c779-4754-a7d0-96ae03a7511f",
+                "parent_id": null,
+                "content": "\nsummary:<p>\nThe Idle-Mode Redial mechanism combines Voice and Video call standards for a terminal-centric solution requiring minimal network support. It comprises three main components:\n\n1. Switching between voice and video during an established call involves one device releasing the current mode (voice or video) and establishing the opposite mode with the same recipient.\n\n2. During a video call, if radio coverage degrades to maintain the call, it is released, allowing the initiating user to offer a voice call attempt to the other party.\n\n3. If initial video call establishment fails, the A party can automatically establish a voice call instead.\n\nOptimization of the Man Machine Interface (MMI) in user equipment (UE) is possible and desirable for these processes. There may be trade-offs between 'speed of redial' and interactions with content servers that only support video calls, as \"automatic\" use does not preclude user confirmation requests.</p>",
+                "children": [
+                    {
+                        "parent_title": "4\tDescription of idle mode redial switching between voice and video",
+                        "title": "4.1\tGeneral Description",
+                        "level": 2,
+                        "unique_id": "9c0d926d-01ea-461d-a67f-3eac6c91abca",
+                        "parent_id": "1f167c73-c779-4754-a7d0-96ae03a7511f",
+                        "content": "This \"Idle-Mode Redial\" mechanism is a combination of existing Voice call and Video call standards and services. It is a \"terminal-centric\" solution that requires only minimal additional support from the UTRAN, GERAN and Core Network. There are 3 main components to the solution:\na)\tSwitching between voice and video during an established call is achieved by one UE releasing the voice (or video) call and then that UE establishing a video (or voice) call with the same destination UE.\nb)\tDuring a video call, the radio coverage at one end may degrade such that the video call cannot be maintained. In this case the video call will be released, and, the UE that initiated the video call can offer to its user an attempt to establish a voice call with the other party.\nc)\tThe initial establishment of a video call may be unsuccessful, in which case the A party can automatically establish a voice call.\nFor all these 3 cases, optimisation of the Man Machine Interface in the UE is possible and desirable.\nNOTE:\tThere may be tradeoffs between 'speed of redial' and interactions with content servers that only support video calls. In particular, the use of the term \"automatic\" does not prevent the UE requesting confirmation from the user.\nIt is not the intention of this TR to specify the MMI of UEs, however, this TR does describe some MMI actions solely for the purpose of easing the description of the procedures.\n",
+                        "children": []
+                    },
+                    {
+                        "parent_title": "4\tDescription of idle mode redial switching between voice and video",
+                        "title": "4.2\tUser initiated switching during an established call",
+                        "level": 2,
+                        "unique_id": "8bc24e05-7d50-4e40-bf06-fa1879ba532b",
+                        "parent_id": "1f167c73-c779-4754-a7d0-96ae03a7511f",
+                        "content": "\nsummary:<p>\nThe successful transition from voice to video calls on UMTS networks, as illustrated in Figure 1, involves several steps:\n\n1. Users agree on switching to a video call after verbal dialogue, ensuring both have compatible devices and necessary indications are visible.\n\n2. The second user initiates the switch by pressing a \"switch to video\" button or using equivalent interface methods, storing the first user's contact information for subsequent use.\n\n3. Voice calls are terminated, and networks release associated connections.\n\n4. Users re-camp on suitable cells and perform idle mode tasks before initiating a new RRC connection setup for the video call.\n\n5. The second user sends a Setup message to initiate the video call with stored contact details, indicating it's a redial attempt if necessary.\n\n6. Networks request radio resource allocation; if successful, IAM and Call Proceeding messages are exchanged between users.\n\n7. Users confirm their capability to handle the video call, leading to alerting messages being sent across networks for establishment of the call.\n\n8. The video call is established with privacy considerations in place for switching functions.\n\n9. For transitioning from a video call back to voice, similar procedures apply with adjustments noted for differences and redial attempts indicated in voice call Setup messages.\n</p>",
+                        "children": [
+                            {
+                                "parent_title": "4.2\tUser initiated switching during an established call",
+                                "title": "4.2.1\tSignalling flows and procedures",
+                                "level": 3,
+                                "unique_id": "4e0873b9-7d1e-47c0-ae2b-1461202c1881",
+                                "parent_id": "8bc24e05-7d50-4e40-bf06-fa1879ba532b",
+                                "content": "The successful case of the \"B party initiated switch to video\" for UMTS is illustrated in Figure 1. The notation \"UE 1\" and \"UE 2\" is used (rather than A and B party) because, if the B party (of the voice call) presses the \"switch to video\" button, it then becomes the A party of the subsequent video call.\n![本地路径](C:\\Users\\YIXUAN ZHANG\\OneDrive\\桌面\\23903-i00\\image3.wmf)\n[Figure_Placeholder]C:\\Users\\YIXUAN ZHANG\\OneDrive\\桌面\\23903-i00-image3.png[/Figure_Placeholder]\nFigure 1: B party initiated switch to video\n0)\tThe UEs are in a voice call initiated by UE 1. Following verbal dialogue between User 1 and User 2, they agree that a switch to video is likely to be successful (e.g. because both User 1 and User 2 have video capable handsets, and, they both have \"using 3G\" indications visible on their screens). The User of UE 2 pushes the \"switch to video\" button (or uses other MMI that provides the same functionality) and UE 2 stores the CLI of UE 1 for use in step 7.\nNOTE 1:\tIf UE 1 (instead of UE 2) initiated the \"switch to video\", then UE 1 stores the previously dialled number for use in step 7.\n1)\tUE 2 releases the voice call.\n2)\tMSC 2 sends a RELEASE message with the release cause. The cause value in the RELEASE message might be changed by transit networks prior to arrival at MSC 1.\n3)\tMSC 1 sends a RELEASE COMPLETE message to MSC 2.\n4)\tMSC 1 releases the voice call with UE 1.\n5)\tMSC 2 and MSC 1 locally release the Iu connections to RNC 2 and RNC 1 (assuming that there are no other CM connections active). RNC 2 and RNC 1 then release the RRC connections (assuming that their mobiles are not in PMM connected state).\n\tIn order to minimise idle tasks performed by the UE, the following should be performed by Operators which preferentially camp UEs on UMTS:\n\tthe BSC should include the \"Cell selection indicator after release of all TCH and SDCCH\" IE in the Channel Release message (see TS 44.018 [2]) if the release is done on a GERAN cell and the call was not started on this BSC and the local 2G and 3G cells are in different RAs.\nNOTE 2:\tThe above text does mean RA. Change of LA always involves change of RA.\n6)\tUE 2 and UE 1 camp on suitable cells and perform the required idle mode tasks.\n7)\tUE 2 initiates RRC connection setup and sends the Setup message for the video call to MSC 2. The Called Party number is the one stored in step 0. The Setup message should carry extra information to indicate that it is the result of a redial attempt.\n8)\tMSC 2 requests the allocation of radio resources.\n\tIf the GERAN does not support CS video, then the MSC 2 shall send an A interface Assignment Request message to the BSC including the Service Handover IE set to \"Handover to UTRAN or cdma2000 should be performed\" and a Channel Type indicating any value acceptable to the BSC. The BSS handles the Assignment Request message as defined in TS 48.008 [3]. The interactions between MSC server and MGW can be minimised if the A interface circuit is not allocated. This can be achieved by setting the Channel Type = signalling. The interactions between the MSC server and the MGW are defined in TS 23.205 [12].\n\tIf the GERAN does support CS video then the MSC 2 should send an A interface Assignment Request message to the BSC including the relevant channel type. The BSS proceeds as defined in TS 48.008 [3].\n9)\tIf radio resource allocation was successful, the IAM message is sent to MSC 1 and the Call Proceeding message is sent to UE 2.\n10)\tMSC 1 pages UE 1. UE 1 responds by establishing an RRC connection and sending the Paging Response message to MSC 1 within the RRC-Initial Direct Transfer and RANAP-Initial UE messages. MSC 1 then sends the Setup message for the video call to UE 1. The Setup message carries the CLI of UE 2.\n11) UE 1 confirms its capability to handle the video call in the Call Confirmed message and MSC 1 requests the allocation of radio resources.\n\tIf UE 1 responded to paging by establishing an RR connection on a GERAN cell, then MSC 1 initiates handover to UTRAN as described in step 8.\n12)\tIf the radio resource allocation was successful, UE 1 sends an Alerting message to MSC 1. MSC 1 sends the ACM message to MSC 2 and MSC 2 sends the Alerting message to UE 2.\n13)\tUser 1 answers the video call. For privacy reasons, the \"switch to video\" and \"switch to voice\" answer functions should not be automated.\n14)\tThe video call is established.\nWith obvious small differences, some of which are described above, the above procedure is also used for switching from a video call to a voice call.\nNOTE 3:\tWhen \"redial-switching\" from a video call to a voice call, the voice call Setup message should carry the extra information to indicate that it is a redial attempt.\n",
+                                "children": []
+                            },
+                            {
+                                "parent_title": "4.2\tUser initiated switching during an established call",
+                                "title": "4.2.2\tFuture enhancements",
+                                "level": 3,
+                                "unique_id": "96565780-bbba-4c22-bffd-9282508202ee",
+                                "parent_id": "8bc24e05-7d50-4e40-bf06-fa1879ba532b",
+                                "content": "\nsummary:<p>\nTo enhance user experience, mobile devices should indicate their use of UMTS for ongoing voice calls. Additional functionality includes:\n1. Showing if 64 kbit/s video support is possible when using UTRAN in the current location.\n2. Indicating availability and capability of UMTS coverage for supporting 64 kbit/s video when using GERAN.\n</p>",
+                                "children": [
+                                    {
+                                        "parent_title": "4.2.2\tFuture enhancements",
+                                        "title": "4.2.2.1\tDetection of video calling capability during a voice call",
+                                        "level": 4,
+                                        "unique_id": "31010874-c831-4720-8f7b-de66b7c33086",
+                                        "parent_id": "96565780-bbba-4c22-bffd-9282508202ee",
+                                        "content": "As a minimum, it will be useful if mobiles can indicate whether they are using UMTS for their ongoing voice call.\nHowever additional functionality would be useful, specifically:\n-\twhen using UTRAN, an indication of whether 64 kbit/s video can be supported in the mobile's current location;\n-\twhen using GERAN, an indication of whether UMTS coverage is available, and, ideally whether the UMTS coverage can support 64 kbit/s video.\n",
+                                        "children": []
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "parent_title": "4\tDescription of idle mode redial switching between voice and video",
+                        "title": "4.3\tFallback to voice during an established video call",
+                        "level": 2,
+                        "unique_id": "5da1bed2-9cac-41c3-8563-c309bcbd9fc1",
+                        "parent_id": "1f167c73-c779-4754-a7d0-96ae03a7511f",
+                        "content": "\nsummary:<p>\nRadio degradation at UE 2 triggers fallback from UMTS service to voice call through several steps: radio degradation detection by RNC 2, connection release initiated by RNC 2 and confirmed by MSCs, UE 1's redial action post-disconnection confirmation, establishment of a voice call between UE 1 and UE 2 via RNCs, alerting messages, and acceptance. Complexities arise with UTRAN and GERAN cell attachments to different MSCs or SGSNs affecting location area updates and paging responses. To mitigate issues, operators might need to adjust configurations for video call fallbacks and neighbor cell lists. Potential solutions involve A party signaling via digit suffix addition or prefix addition for call forwarding inhibition, but these methods carry risks of incorrect handling based on the MSC's capabilities.</p>",
+                        "children": [
+                            {
+                                "parent_title": "4.3\tFallback to voice during an established video call",
+                                "title": "4.3.1\tSignalling flows and procedures",
+                                "level": 3,
+                                "unique_id": "34be16f9-a06d-4702-b317-4e3397387ed9",
+                                "parent_id": "5da1bed2-9cac-41c3-8563-c309bcbd9fc1",
+                                "content": "\nsummary:The text describes a scenario where radio degradation at UE 2 leads to fallback from UMTS (3G) service to voice call. This process involves several steps:\n\n1. **Radio Degradation Detection**: RNC 2 identifies that maintaining the 64kbit/s bearer is no longer possible due to issues like radio link failure.\n   \n2. **Connection Release**: RNC 2 sends an Iu RELEASE REQUEST or a RAB Release Request to MSC 2, indicating the need for releasing the connection.\n\n3. **Release Confirmation**: MSCs send Disconnect messages to UEs and proceed with resource release requests.\n\n4. **UE Actions**: UE 1 prompts its user to redial after receiving disconnect confirmation; then initiates voice call setup.\n\n5. **Call Establishment**: MSCs establish a Voice Call between UE 1 and UE 2 through RNCs, followed by alerting messages and acceptance of the call.\n\n6. **Configuration Considerations**: Additional complexities arise if UTRAN (3G) and GERAN (2G) cells are attached to different MSCs or SGSNs, affecting location area updates and paging responses.\n\n7. **Operator Configuration**: To mitigate issues, operators may need to adjust configurations related to video call fallbacks and neighbor cell lists for optimal service continuity.",
+                                "children": [
+                                    {
+                                        "parent_title": "4.3.1\tSignalling flows and procedures",
+                                        "title": "4.3.1.1\tFallback from UTRAN Video to UTRAN Voice call",
+                                        "level": 4,
+                                        "unique_id": "c4ea1603-b8c1-4c98-a42b-a3115abd4610",
+                                        "parent_id": "34be16f9-a06d-4702-b317-4e3397387ed9",
+                                        "content": "The successful case of the \"radio degradation at UE 2 leading to fallback to voice\" for UMTS is illustrated in Figure 2.\n![本地路径](C:\\Users\\YIXUAN ZHANG\\OneDrive\\桌面\\23903-i00\\image4.wmf)\n[Figure_Placeholder]C:\\Users\\YIXUAN ZHANG\\OneDrive\\桌面\\23903-i00-image4.png[/Figure_Placeholder]\nFigure 2: Radio degradation at UE 2 leading to fallback to voice\nNOTE 1:\tFigure 2 does not show all of the RRC and Iu connection establishment messages.\n1.\tRNC 2 is configured such that it knows that the local GERAN does not (or does) support video calls (i.e. does not (or does) support 64 kbit/s conversational QoS on the CS domain).\nNOTE 2:\tFor an interim period, an alternative solution is that MSC 2 sets the Service Handover IE to 'Handover to GSM shall not be performed' in the RAB Assignment Request message. However, this solution is not future proof if (all or part of) the network's GERAN is upgraded to support CS Video telephony.\n\tWhen RNC 2 detects that the 64kbit/s bearer cannot be maintained any longer (e.g. radio link failure, TS 25.331 [4]), RNC 2 sends either an Iu RELEASE REQUEST message or a RAB Release Request message to MSC 2, indicating that the Iu connection should be released\n2.\tMSC 2 sends a REL message with the release cause. This cause value in the REL message might be changed by transit networks prior to arrival at MSC 1.\n3.\tThe MSCs send Disconnect messages to the UEs.\n\tIn case RNC 2 sent Iu Release Request in step 1 but not a RAB Release Request, MSC 2 will not perform step 3. (i.e. not send Disconnect, which causes that also steps 5 and 6 are not performed), but MSC 2 will immediately proceed with step 7 (i.e. send Iu Release Command).\n4.\tMSC 1 sends a Release Complete message to MSC 2.\n5.\tThe UEs release the Video Call.\n6.\tThe MSCs confirm the release of the Video Call.\n7.\tThe MSCs request the release of all resources and the RNCs release the RRC connections (unless their UE is in PMM connected state).\n8.\tThe RNCs confirm the release of all resources.\n9.\tWhen the signalling connections with the UEs are released, UE 1 and UE 2 camp on suitable cells and perform the required idle mode tasks.\n10.\tUE 1 prompts its user to attempt a Redial. When UE 1 gets the Redial confirmation from its user it sends a SETUP message (containing the Redial indication) to MSC 1 to setup a Voice call.\n11.\tA RAB Assignment Request message is sent from the MSC 1 to the RNC 1, requesting the setup of a RAB for a Voice call.\n12.\tThe radio bearer is established between RNC 1 and UE 1.\n13.\tRNC 1 responds to MSC 1 with an RAB Assignment Response message.\n14.\tMSC 1 sends an IAM message to MSC 2 to establish a Voice Call with UE 2. MSC 2 pages RNC 2 and RNC 2 pages UE 2.\n15.\tMSC 1 sends a Call Proceeding message to UE 1.\n16.\tThe MSC 2 sends a Setup message to UE 2 indicating the establishment of a Voice Call.\n17.\tUE 2 sends Call Confirmed to MSC 2.\n18.\tThe RAB Assignment Request message is sent from MSC 2 to the RNC 2, requesting the establishment of a RAB for a Voice Call.\n19.\tThe radio bearer is established between the RNC 2 and UE 2.\n20.\tRNC 2 responds to MSC 2 with a RAB Assignment Response message.\n21.\tUE 2 sends Alerting message to MSB 2.\n22.\tMSC 2 sends ACM message to MSC 1. MSC 1 sends Alerting to UE 1.\n23.\tUser 2  accepts the Voice Call and UE 2 sends Connect message to MSC 2.\n24.\tMSC 2 sends ANM message to MSC 1.\n25.\tMSC 2 sends Connect Ack message to UE 2.\n26.\tMSC 1 sends Connect message to UE 1.\n27.\tUE 1 acknowledges with a Connect Ack message to MSC 1 and the Voice call is established.\n",
+                                        "children": []
+                                    },
+                                    {
+                                        "parent_title": "4.3.1\tSignalling flows and procedures",
+                                        "title": "4.3.1.2\tFallback from UTRAN Video to GERAN Voice call",
+                                        "level": 4,
+                                        "unique_id": "c434a5e5-c9ab-435d-b05a-f0d9ba6ef5fc",
+                                        "parent_id": "34be16f9-a06d-4702-b317-4e3397387ed9",
+                                        "content": "The procedure in 4.3.1.1 can also be used if UE 2 drops out of UTRAN coverage into GERAN coverage. However there are additional complications:\na)\tIf the UTRAN and GERAN cells are attached to different MSCs then problems are likely to occur due to the time required for the UE 2 to perform Location Area and Routeing Area updating.\n\tIn particular, if UE 2 is updating with a new MSC and/or new SGSN, UE 2 will not respond to MSC 2's paging. This will only become known to UE 1 when MSC 2's \"no response to paging\" timer expires. Typically, an operator configures this timer with values in the range of 8 to 25 seconds. When this timer expires, it is quite likely that UE 2 will have \"call forward on not reachable\" set and so UE 1's call will be diverted to a voice mail server. To avoid these problems, it seems important that the operator configures the UTRAN to minimise the number of video calls that lead to fallback to GERAN coverage and/or to configure the network such that geographically similar UTRAN and GERAN cells are in the same Routeing Area.\nb)\tIn order to avoid useless handover attempts, the RNCs are frequently configured so that no GERAN neighbour cells are given to the mobile during a video call. This will slow down re-selection from 3G to 2G in the case of total loss of 3G coverage. Conversely, in many other scenarios the lack of 2G neighbour cells might force UE 2 to camp on the 3G cell for long enough for it to receive the paging for the voice call.\n\tOverall, the operator may need to adapt the neighbour cell lists provided in video calls on cell by cell basis and/or dependent upon whether or not combined 2G/3G MSCs AND combined SGSNs are in use.\n",
+                                        "children": []
+                                    }
+                                ]
+                            },
+                            {
+                                "parent_title": "4.3\tFallback to voice during an established video call",
+                                "title": "4.3.2\tFuture enhancements",
+                                "level": 3,
+                                "unique_id": "81e2c00f-c019-4f8e-9899-45089021abf2",
+                                "parent_id": "5da1bed2-9cac-41c3-8563-c309bcbd9fc1",
+                                "content": "\nsummary:<p>\nSynchronizing RRC connection release between the RNC and mobile during degraded radio connections might benefit further study. If synchronization isn't ensured, timers could delay A party's redial attempts. Unsuccesful redials may avoid forwarding to a voice mail server. A solution involves A party signaling via digit suffix addition for MSC-A to inhibit call forwarding using Call Diversion Not Allowed setting. However, this method risks digit analysis examining only leading digits in MSC-A. Alternatively, adding a prefix could mishandle calls if MSC-A lacks the required functionality.\n</p>",
+                                "children": [
+                                    {
+                                        "parent_title": "4.3.2\tFuture enhancements",
+                                        "title": "4.3.2.1\tRRC behaviour following degradation of the video RAB",
+                                        "level": 4,
+                                        "unique_id": "ae75be5a-202e-40aa-ba77-16992d5c1433",
+                                        "parent_id": "81e2c00f-c019-4f8e-9899-45089021abf2",
+                                        "content": "Additional study may be beneficial on how to 'synchronise' the release of the RRC connection in the RNC and in the mobile when the radio connection is degraded or lost. If synchronisation cannot be guaranteed then timers may be needed to delay the redial attempt by the A party.\n",
+                                        "children": []
+                                    },
+                                    {
+                                        "parent_title": "4.3.2\tFuture enhancements",
+                                        "title": "4.3.2.2\tInteraction with voice mail servers",
+                                        "level": 4,
+                                        "unique_id": "3887fb6e-0a85-42f9-9343-5e03c39f556c",
+                                        "parent_id": "81e2c00f-c019-4f8e-9899-45089021abf2",
+                                        "content": "If a redial attempt is unsuccessful, it may (or may not) be appropriate to avoid being forwarded to a voice mail server.\nOne potential solution to this is that the A party signals (e.g. by appending a suffix to the dialled digits) to MSC-A and MSC-A then uses the Call Diversion Not Allowed setting in the Call Diversion Treatment Indicators to inhibit call forwarding. One problem with the use of a suffix in the dialled digits is that the digit analysis in MSC-A usually only examines the leading digits. Conversely, if the UE adds a prefix to the dialled digits, then the call will not be handled properly if MSC-A does not support this functionality.\n",
+                                        "children": []
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "parent_title": "4\tDescription of idle mode redial switching between voice and video",
+                        "title": "4.4\tFallback to voice during video call establishment",
+                        "level": 2,
+                        "unique_id": "722c3ad7-c29f-41b7-bef4-648628b18e40",
+                        "parent_id": "1f167c73-c779-4754-a7d0-96ae03a7511f",
+                        "content": "\nsummary:<p>The diagram illustrates the various scenarios where video call establishment might fail, including issues with radio resources and network support for CS video calls. The process involves multiple steps such as setup requests between MSCs (MSC A and MSC B), RAB assignment, paging of UE B, and confirmation or rejection of the call by UE B. Failure cases include lack of radio resources on either side leading to release messages being sent back to the initiating party, which then prompts the user to initiate a voice call instead. Cause values in Disconnect/Release Complete messages can guide users on whether to retry the video call or switch to voice. The text also notes that there's no specific cause value for UE B to decline a video call while indicating willingness to accept a voice call.</p>",
+                        "children": [
+                            {
+                                "parent_title": "4.4\tFallback to voice during video call establishment",
+                                "title": "4.4.1\tSignalling flows and procedures",
+                                "level": 3,
+                                "unique_id": "f6f8900a-e805-4315-971c-9896bcc7cf82",
+                                "parent_id": "722c3ad7-c29f-41b7-bef4-648628b18e40",
+                                "content": "The following diagram shows the various cases where video call establishment can fail or be unsuccessful. At many points, alternative signalling message flows are shown by the \"a\" and \"b\" arrows.\n![本地路径](C:\\Users\\YIXUAN ZHANG\\OneDrive\\桌面\\23903-i00\\image5.wmf)\n[Figure_Placeholder]C:\\Users\\YIXUAN ZHANG\\OneDrive\\桌面\\23903-i00-image5.png[/Figure_Placeholder]\nFigure 3: Video call establishment failure scenarios\n1.\tUE A sends a SETUP message to MSC A to setup a Video call.\n2.\tA RAB Assignment Request message is sent from the MSC A to the RNC A, requesting the setup of a RAB for a Video call. The radio bearer is established between RNC A and UE A.\n\tIf the UE is using a GERAN that does not support CS video calls, the MSC sends an Assignment Request with an encoding that prompts the BSC to initiate a handover to UTRAN.\n3a. (Successful case)\tMSC A sends an IAM message to MSC B to establish a Video Call with UE B. And, MSC A sends a Call Proceeding message to UE A.\n3b.\t(Failure case) The video call fails because of lack of radio resources on the A side. MSC A sends a Release Complete message (e.g. with cause #47, Resources unavailable, unspecified) to UE A. The RRC connection is released. UE A can then prompt the user to initiate a voice call to UE B.\n4a.\t(Successful case) MSC B pages UE B. UE B responds to paging.\n4b.\t(Failure case) The video call fails because MSC B or the transit network do not support video calls. MSC B sends a REL message to MSC A. MSC A sends a Disconnect message (e.g. with cause #79, Service or option not implemented, unspecified) to UE A. The RRC connection is released. UE A can then prompt the user to initiate a voice call to UE B.\n5.\tMSC B sends a Setup message to UE B indicating the establishment of a Video Call.\n5a.\t(Successful case) UE B sends Call Confirmed to MSC B.\n5b.\t(Failure case) The video call fails because UE B does not support video calls. UE B sends a Release Complete message with cause #88 (Incompatible destination) to MSC B. MSC B sends a REL message to MSC A. MSC A sends a Disconnect message (e.g. with cause #88, Incompatible destination) to UE A. The RRC connections are released. UE A can then prompt the user to initiate a voice call to UE B.\n6a.\t(Successful case) The RAB Assignment Request message is sent from MSC B to the RNC B, requesting the establishment of a RAB for a Video Call. The radio bearer is established between the RNC B and UE B. RNC B responds to MSC B with a RAB Assignment Response message. Following the allocation of the radio resources, UE B sends an Alerting message to MSC B.\n6b\t(Failure case) The video call fails because of lack of radio resources on the B side. MSC B sends a Release Complete message to UE B. MSC B sends a REL message to MSC A. MSC A sends a Disconnect message to UE A (e.g. with cause #47, Resources unavailable, unspecified). The RRC connections are released. UE A can then prompt the user to initiate a voice call to UE B.\n7a\t(Successful case) The user of UE B accepts the call and UE B sends a Connect message to MSC B.\n7b\t(Failure case) UE B is alerting the user of UE B. The user of UE B may choose not to accept the video call and either Reject the call or indicate User Determined User Busy. UE B then sends a Disconnect message (with cause #21, Call rejected or cause #17, User busy) to MSC B. MSC B sends a REL message to MSC A. MSC A sends a Disconnect message (with cause #21, Call rejected or cause #17, User busy) to UE A. The RRC connections are released. UE A can then prompt the user to initiate a voice call to UE B.\nMany other cause values can be returned to UE A in the Disconnect/Release Complete messages. It is a matter of UE implementation as to whether or not these cause values are used to prompt the user to initiate a re-dial.\nNOTE:\tThere is no cause value that the user of UE B can use to decline the video call but indicate that they might accept a voice call.\nIf (following a failed video call establishment attempt) the UE prompts the user to initiate a Redial, and, the user requests the Redial attempt, then, the resulting SETUP message should carry extra information to indicate that it is a redial attempt.\n",
+                                "children": []
+                            },
+                            {
+                                "parent_title": "4.4\tFallback to voice during video call establishment",
+                                "title": "4.4.2\tFuture enhancements",
+                                "level": 3,
+                                "unique_id": "51f28569-374c-46aa-a2f9-6c82ad5d7bfe",
+                                "parent_id": "722c3ad7-c29f-41b7-bef4-648628b18e40",
+                                "content": "\nsummary:<p>Various reasons like User Determined User Busy, Barring of all incoming calls, and existing active video call can lead to unsuccessful video and voice calls. For UDUB cases, Alerting message precedes the release message. Supplementary services such as automatic forwarding to a video mailbox when not in UMTS coverage are analyzed; however, MSC B should reject rather than forward calls due to UE reachability but no busy status or reply opportunity. Video calls stored by mailboxes can only be retrieved when UE is in 64kbit/s bearer coverage area. Solutions include providing voice-only audio part of video call from mailbox or disabling all video call forwarding.</p>",
+                                "children": [
+                                    {
+                                        "parent_title": "4.4.2\tFuture enhancements",
+                                        "title": "4.4.2.1\tHow to detect that a voice call might be successful?",
+                                        "level": 4,
+                                        "unique_id": "e12b6173-8954-4f75-a052-88ae01158cef",
+                                        "parent_id": "51f28569-374c-46aa-a2f9-6c82ad5d7bfe",
+                                        "content": "There are many reasons (User Determined User Busy, Barring of all incoming calls, an existing active video call) why a video call and a re-dialled voice call might both be unsuccessful. It would be useful if the rejection for the video call carried information that helped UE A to determine whether or not a subsequent voice call might succeed.\nNOTE:\tFor UDUB, the A party will have received the Alerting message prior to the release message.\n",
+                                        "children": []
+                                    },
+                                    {
+                                        "parent_title": "4.4.2\tFuture enhancements",
+                                        "title": "4.4.2.2\tHow to avoid video mail box problems?",
+                                        "level": 4,
+                                        "unique_id": "4c32d630-de44-426d-8662-b04767e14b0c",
+                                        "parent_id": "51f28569-374c-46aa-a2f9-6c82ad5d7bfe",
+                                        "content": "Can users of video phones be provided with a full suite of supplementary services, e.g. can automatic forwarding to a video mail box when not in UMTS coverage be performed? Analysis of the current Call Forwarding specifications (TS 22.082 [10], TS 23.082 [11]) shows that MSC B should reject the call rather than forward it (because the UE is reachable but is not busy and has not been offered the chance to reply).\nOnce a video call has been stored by the mailbox, it can only be retrieved from the mailbox when the UE is in coverage that allows for a 64kbit/s bearer. As long as the UE is not in such a coverage area it cannot receive the video call from the mailbox.\nOne potential solution to this is that the mailbox provides a voice call comprising only the audio part of the video call. An alternative is that the user deactivates all call forwarding for video calls (c.f. CS data calls).\n",
+                                        "children": []
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "parent_title": "4\tDescription of idle mode redial switching between voice and video",
+                        "title": "4.5\tAutomatic upgrade to video following fallback to voice",
+                        "level": 2,
+                        "unique_id": "6d50ac6e-79af-4a81-9070-c86017167456",
+                        "parent_id": "1f167c73-c779-4754-a7d0-96ae03a7511f",
+                        "content": "This appears difficult to achieve in an automatic manner. However, given the privacy issues associated with automatic switching from voice to video, this does not appear to be a serious deficiency.\nFor manual switching, good indications of UTRAN coverage, and, its ability (or not) to handle 64 kbit/s video would be useful. This is the same requirement as described in clause 4.2.2.1.\n",
+                        "children": []
+                    }
+                ]
+            },
+            {
+                "parent_title": null,
+                "title": "5\tInteraction with Supplementary Services and other 3GPP Features",
+                "level": 1,
+                "unique_id": "2fad397d-f6eb-4460-a508-1c2551ea7ad0",
+                "parent_id": null,
+                "content": "\nsummary:<p>\nThe CS video call is classified under 3GPP specifications as a Bearer Service, not a Teleservice. Supplementary services in Annex A of TS 22.004 are applicable to both Telephony (Teleservice) and cct data (Bearer Services). Most supplementary services can be used for voice and video calls alike. For the 'redial' feature to function effectively, users and operators must configure supplementary services and network features like ODB and Roaming Restrictions sensibly. Some services cannot be used during the video component of a call. CLIs should not be restricted by users and should be transferred by networks for this feature to work smoothly. Single numbering schemes are recommended. The terminating UE should be aware that number formats might change upon redialing, affecting routing or format due to differing network handling of voice vs. video calls. CAMEL-based number translation services' impacts on call features like voice mail delivery and Call Completion need further study. When initiating a video call, the terminating network may provide multimedia content while contacting the B party, requiring bi-directional user plane between A party and terminating network for successful call establishment.\n</p>",
+                "children": [
+                    {
+                        "parent_title": "5\tInteraction with Supplementary Services and other 3GPP Features",
+                        "title": "5.1\tGeneral",
+                        "level": 2,
+                        "unique_id": "1cec7f0f-50b5-4b25-9d76-268ee0ddfe31",
+                        "parent_id": "2fad397d-f6eb-4460-a508-1c2551ea7ad0",
+                        "content": "Within the 3GPP specifications the CS video call is regarded as a Bearer Service and not a Teleservice.\nAnnex A of TS 22.004 [5] defines the applicability of supplementary services to both \"Telephony\" (a Teleservice) and \"cct data\" (Bearer Services).\nMost supplementary services are applicable to both the voice and video calls. For this 'redial' solution to function effectively, the user and operator needs to configure supplementary services and network features (such as ODB and Roaming Restrictions) in a sensible manner (e.g. avoid barring voice calls but permit video calls). Sensible configurations do not seem to be prohibited by the standard.\nIt is worth noting that some supplementary services cannot be used while in the video component of a call (e.g. Call Hold; Multiparty; Explicit Call Transfer and Calling Name Presentation).\n",
+                        "children": []
+                    },
+                    {
+                        "parent_title": "5\tInteraction with Supplementary Services and other 3GPP Features",
+                        "title": "5.2\tCalling Line Identity and Single Numbering Scheme",
+                        "level": 2,
+                        "unique_id": "6cd444f1-9dc5-46b1-ac28-8ef408d989fd",
+                        "parent_id": "2fad397d-f6eb-4460-a508-1c2551ea7ad0",
+                        "content": "To make this feature work smoothly, CLIs should not be restricted by the user, and, CLIs should be transferred by the networks. In addition, single numbering schemes should be used (i.e. the user's videophone and telephone numbers need to be the same).\nWhen detecting that a redialled call is the same as the original, the terminating UE should be aware that the number format might change from, for example, national to international format. This could be because the networks route the voice and video calls differently, or, because the terminating UE was the original A party.\nThe impacts of CAMEL based number translation services, e.g. for office VPNs are for further study.\n",
+                        "children": []
+                    },
+                    {
+                        "parent_title": "5\tInteraction with Supplementary Services and other 3GPP Features",
+                        "title": "5.3\tCAMEL based services triggered by call release and CCBS",
+                        "level": 2,
+                        "unique_id": "b697d393-1a6e-4832-bcb2-58b4a677ef34",
+                        "parent_id": "2fad397d-f6eb-4460-a508-1c2551ea7ad0",
+                        "content": "Release of the call can trigger other services, for example, voice mail delivery attempts and/or Call Completion to a Busy Subscriber. These services should have been designed to permit customers to make 'one call followed by another', however, increased usage of closely coupled calls might mean that these other services need re-tuning.\n",
+                        "children": []
+                    },
+                    {
+                        "parent_title": "5\tInteraction with Supplementary Services and other 3GPP Features",
+                        "title": "5.4\tProvision of Multi-Media \"Ring Back\" tones to the A party",
+                        "level": 2,
+                        "unique_id": "4c59d866-162d-488b-8003-dc055377c299",
+                        "parent_id": "2fad397d-f6eb-4460-a508-1c2551ea7ad0",
+                        "content": "When initiating a video call, the terminating network might provide \"multi-media\" content to the A party while attempting to contact the B party.\nIn order to achieve this, a bi-directional user plane is needed between the A party and the terminating network, i.e., the Connect message must have been sent. In this situation, the original video call establishment has been successful, and, as such, there is no need to \"redial as a voice call\".\nHow the terminating network transfers the established video call to the \"real B party\" is a matter for the terminating network (e.g. with regard to H.324 codec negotiation matters).\n",
+                        "children": []
+                    }
+                ]
+            },
+            {
+                "parent_title": null,
+                "title": "6\tO+M, charging and inter-operator and roaming accounting",
+                "level": 1,
+                "unique_id": "3e8d6702-500c-4a97-b6d1-03ed869d2af9",
+                "parent_id": null,
+                "content": "\nsummary:<List>\n  <Item>With the redial mechanism in place, voice and video calls operate separately, allowing each to utilize existing billing systems without alteration. However, this may lead to difficulties correlating video and voice components within a single call across different billing systems.</Item>\n  <Item>The introduction of \"reason for establishment\" into CDRs might necessitate additional signaling from mobile devices following TS 24.008 [7] guidelines, impacting the MSC's ability to generate accurate statistics.</Item>\n  <Item>MSCs may face challenges in accurately collecting call statistics due to potential discrepancies between B-party issues not being fully signaled between MSCs, affecting A-party side evaluations.</Item>\n  <Item>The redial mechanism enables separate handling of voice and video calls, with specific scenarios for unsuccessful setup attempts identified. Upgrading TS 24.008 [7] could facilitate additional statistics collection on redial attempts for both voice and video calls.</Item>\n  <Item>Introducing a \"redial flag\" as an optional parameter in CDRs for mobile-originated calls might enhance transparency regarding call retries, potentially impacting customer expectations under different billing models (e.g., per second vs. per minute).</Item>\n</List>",
+                "children": [
+                    {
+                        "parent_title": "6\tO+M, charging and inter-operator and roaming accounting",
+                        "title": "6.1\tCall Detail Records and statistics",
+                        "level": 2,
+                        "unique_id": "f51624a7-c1a6-4ec4-a9d3-42ad8963b175",
+                        "parent_id": "3e8d6702-500c-4a97-b6d1-03ed869d2af9",
+                        "content": "With this redial mechanism, the voice and video calls are totally separate. Hence each should be able to use the existing CDR and billing machinery without modification.\nHowever, it is worth noting that the billing system will probably not be able to provide any correlation between video and voice components of the same call.\nThe easy ability to switch between voice and video calls may have an impact on, for example, calculations of 'mean call holding time' if this is calculated from CDRs. As a consequence there may be a need to add extra information onto the CDRs to indicate the reason for release/reason for establishment of a call.\nIn particular, it would be valuable to know the proportion of redial attempts that were successful.\nThe addition of \"reason for establishment\" requires extra TS 24.008 [7] signalling from the mobile. It is recommended that such changes to the TS 24.008 [7] signalling should be made in this release of the specification.\nAn MSC generates call statistics information from its locally available release information.  Some of the abnormal releases on the B party side may be seen only as normal releases on the A party side as some problems of B party side are not signalled between MSCs. Therefore, the probability of the different B party problems has to be taken into account when the statistics for A party side is evaluated.\nAn MSC may collect call statistics information from video calls for:\n-\tunsuccessful mobile originating video call setup because 64 kbit/s RAB is currently not available;\n-\tunsuccessful mobile terminating video call setup because 64 kbit/s RAB is currently not available;\n-\tunsuccessful mobile originating video call setup because of lack of video service support by the UE;\n-\tunsuccessful mobile terminating video call setup because of lack of video service support by the network;\n-\tunsuccessful mobile originating video call setup because UE or network do not support video call;\n-\tdisrupted video calls because of loss of the radio connection;\nand, if TS 24.008 [7] is upgraded, the MSC can collect statistics for:\n-\tthe number of mobile originating video call attempts indicating redial;\n-\tthe number of mobile originating voice call attempts indicating redial.\nAdditionally, it is recommended that a \"redial flag\" is an optional parameter in the CDR produced for Mobile Originated calls as specified in TS 32.205 [9].\n",
+                        "children": []
+                    },
+                    {
+                        "parent_title": "6\tO+M, charging and inter-operator and roaming accounting",
+                        "title": "6.2\tOnline charging",
+                        "level": 2,
+                        "unique_id": "8d319785-4b50-4451-8b52-93cd7ead4832",
+                        "parent_id": "3e8d6702-500c-4a97-b6d1-03ed869d2af9",
+                        "content": "With this redial mechanism, the voice and video calls are totally separate. Hence each should be able to use the existing pre-pay mechanisms without modification.\n",
+                        "children": []
+                    },
+                    {
+                        "parent_title": "6\tO+M, charging and inter-operator and roaming accounting",
+                        "title": "6.3\tTariffing",
+                        "level": 2,
+                        "unique_id": "feae56b9-7077-4241-916e-31214efde914",
+                        "parent_id": "3e8d6702-500c-4a97-b6d1-03ed869d2af9",
+                        "content": "With this redial mechanism, each call will be subject to its own tariffs. If 'per second' charging is in operation this should not matter. However if \"per minute\" billing is used, a customer might be slightly disappointed with the charge raised following 20 seconds of voice communication and 40 seconds of video communication.\n",
+                        "children": []
+                    },
+                    {
+                        "parent_title": "6\tO+M, charging and inter-operator and roaming accounting",
+                        "title": "6.4\tInter-operator accounting",
+                        "level": 2,
+                        "unique_id": "9d1692cf-bd7f-4ab0-95f1-7a3e03f13222",
+                        "parent_id": "3e8d6702-500c-4a97-b6d1-03ed869d2af9",
+                        "content": "With this redial mechanism, the voice and video calls are totally separate. Hence there should be no impact on existing inter-operator agreements for either voice or for video calls.\n",
+                        "children": []
+                    },
+                    {
+                        "parent_title": "6\tO+M, charging and inter-operator and roaming accounting",
+                        "title": "6.5\tRoaming accounting",
+                        "level": 2,
+                        "unique_id": "b13f4ec8-78e6-41b2-98f3-426af4d0ece6",
+                        "parent_id": "3e8d6702-500c-4a97-b6d1-03ed869d2af9",
+                        "content": "\nsummary:<List>\n  <Item>The redial mechanism ensures that voice and video call functionalities are independent, thereby not affecting existing roaming agreements for both types of calls.</Item>\n</List>",
+                        "children": [
+                            {
+                                "parent_title": "6.5\tRoaming accounting",
+                                "title": "Annex A:",
+                                "level": 9,
+                                "unique_id": "e48d6213-2c46-4759-a810-ba9fa9288d3b",
+                                "parent_id": "b13f4ec8-78e6-41b2-98f3-426af4d0ece6",
+                                "content": "List of CRs needed to other TSs\n",
+                                "children": []
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "parent_title": null,
+                "title": "A.1\tGeneral",
+                "level": 1,
+                "unique_id": "ed541b39-6f21-4a9d-8e1a-f202d512b33e",
+                "parent_id": null,
+                "content": "The functionality that is described in this TR is based on the R'99 core specifications, plus, some additional CRs already agreed in later releases, plus, some CRs that have yet to be drafted and/or agreed by TSG Plenaries.\n",
+                "children": []
+            },
+            {
+                "parent_title": null,
+                "title": "A.2\tCRs to other specifications already agreed by TSG Plenaries",
+                "level": 1,
+                "unique_id": "fffe5ad8-a3cd-4019-ac1b-49ad6851c4ae",
+                "parent_id": null,
+                "content": "These CRs are believed to include (and believed to be limited to):\na)\tFrom release 6, CR 287r3 to TS 44.018 [2] (see GP-040518) and CR 198r4 to TS 45.008 [6] (see GP-040542). These are the CRs that permit the BSC to \"release the mobile and ask the mobile to camp on 3G\" (re: clause 4.2.1, step 5).\nb)\tFrom release 6, CR 133 to TS 48.008 [3] (see GP-041421). This CR relates to \"Service handover for services not supported in GERAN\" (re: to clause 4.2.1, step 8 and clause 4.4.1, step 2).\n",
+                "children": []
+            },
+            {
+                "parent_title": null,
+                "title": "A.3\tFuture CRs that are needed and/or are desirable",
+                "level": 1,
+                "unique_id": "d576f589-bb67-49bb-b256-0f0558303d42",
+                "parent_id": null,
+                "content": "\nsummary:The document outlines updates and revisions from SP-26 to SP-88E, detailing versions 2.0.0 to 18.0.0 with each update corresponding to a new release (Rel-7 through Rel-18). The changes include:\n\n1) Adding \"redial attempt\" information in Setup messages for UEs per TS 24.008 [7].\n2) Providing clarification on service-based handover from GERAN via TS 23.009 [8] and TS 48.008 [3].\n3) Incorporating a \"redial flag\" into MSC CDR for Mobile Originated calls as per TS 32.205 [9].",
+                "children": [
+                    {
+                        "parent_title": "A.3\tFuture CRs that are needed and/or are desirable",
+                        "title": "Annex B:",
+                        "level": 9,
+                        "unique_id": "0bd6f534-a7aa-47ca-8fc5-5e0bd8d78367",
+                        "parent_id": "d576f589-bb67-49bb-b256-0f0558303d42",
+                        "content": "Change history\n| Change history | Change history | Change history | Change history | Change history | Change history | Change history | Change history |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n| Date | TSG # | TSG Doc. | CR | Rev | Subject/Comment | Old | New |\n| 2004-12 | SP-26 | SP-040822 |  |  | Creation of version 6.0.0 | 2.0.0 | 6.0.0 |\n| 2005-03 | SP-27 | SP-050 | 001 |  | Incorrect sequence of events in 4.3.1.1 | 6.0.0 | 6.1.0 |\n| 2007-06 | - | - | - | - | Update to Rel-7 version (MCC) | 6.1.0 | 7.0.0 |\n| 2008-12 | SP-42 | - | - | - | Update to Rel-8 version (MCC) | 7.0.0 | 8.0.0 |\n| 2009-12 | SP-46 | - | - | - | Update to Rel-9 version (MCC) | 8.0.0 | 9.0.0 |\n| 2011-03 | SP-51 | - | - | - | Update to Rel-10 version (MCC) | 9.0.0 | 10.0.0 |\n| 2012-09 | - | - | - | - | Update to Rel-11 version (MCC) | 10.0.0 | 11.0.0 |\n| 2014-09 | SP-65 | - | - | - | Update to Rel-12 version (MCC) | 11.0.0 | 12.0.0 |\n| 2015-12 | - | - | - | - | Update to Rel-13 version (MCC) | 12.0.0 | 13.0.0 |\n| 2017-03 | - | - | - | - | Update to Rel-14 version (MCC) | 13.0.0 | 14.0.0 |\n| 2018-06 | SP-80 | - | - | - | Update to Rel-15 version (MCC) | 14.0.0 | 15.0.0 |\n| 2020-07 | SP-88E | - | - | - | Update to Rel-16 version (MCC) | 15.0.0 | 16.0.0 |\n| 2022-03 | - | - | - | - | Update to Rel-17 version (MCC) | 16.0.0 | 17.0.0 |\n| 2024-03 | - | - | - | - | Update to Rel-18 version (MCC) | 17.0.0 | 18.0.0 |\n",
+                        "children": []
+                    }
+                ]
+            }
+        ]
+    }
+]
