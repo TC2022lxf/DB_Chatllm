@@ -141,5 +141,5 @@ def docx_to_markdown(docx_name, markdown_name):
 if __name__ == '__main__':
     # docx_name = r"D:\project\cosmetic-langchain-llm\unstructured_data\29531-i10.docx"
     docx_path = r"C:\Users\林新锋\Desktop\EMBED VisioViewer.docx"
-    markdown_path = r'../../utils/output.md'
+    markdown_path = r'md'
     docx_to_markdown(docx_path, markdown_path)
