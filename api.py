@@ -99,7 +99,7 @@ def qa_with_kb_api(user_id:str,chat_id:str,question:str,stream:Optional[bool]=Fa
         return answer
 
 if __name__ == '__main__':
-    from langchain_anthropic import ChatAnthropic
+    # from langchain_anthropic import ChatAnthropic
     #uvicorn.run(app, host="0.0.0.0", port=8502, workers=1)
     # record_all_history("1","1","hello","answer")
     # print(global_history_dict)
@@ -107,3 +107,18 @@ if __name__ == '__main__':
     # index
     # 模型下载
     # 模型下载
+
+    # Copyright (c) Microsoft Corporation. All rights reserved.
+    # Licensed under the MIT License.
+
+    # -*- coding: utf-8 -*-
+
+    import json
+
+    from collections import deque
+    queue = deque()
+    queue.append(1)
+    queue.append(2)
+    print(queue)
+    queue.pop()
+    print(queue)
